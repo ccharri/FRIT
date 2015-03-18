@@ -111,8 +111,9 @@ bool Map::isConnected(int x, int y, int nx, int ny) {
             if(!(isPathable(getNode(x, y)) && isPathable(getNode(nx, ny))) return false;
             if((abs(xdif) == 1) && (abs(ydif) == 1)) //If a corner
             {
-                
-                return true;
+                //Only allow conections to corners if both neighboring middle nodes are.
+                //Otherwise, the diagonal is cut off and so not diagonally connected.
+                return isPathable(getNode(nx,y)) && isPathable(getNode(x, ny));
             }
             else return (y==ny && abs(xdif) == 1) || (x==nx && abs(ydif) == 1);
         case QUARTILE:
