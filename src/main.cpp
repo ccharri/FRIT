@@ -2,6 +2,7 @@
 // #include "types.h"
 
 #include <fstream>
+#include <iostream>
 #include "map.h"
 
 int main(int argc, char** argv)
