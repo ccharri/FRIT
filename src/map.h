@@ -1,7 +1,7 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
-#import <iostream>
+#include <iostream>
 
 typedef enum
 {
@@ -22,6 +22,7 @@ public:
 
 	int getWidth() const {return m_width;}
 	int getHeight() const {return m_height;}
+	MapType getType() const { return m_type; }
 
 	bool isPathable(char n) const;
     bool isConnected(int x, int y, int nx, int ny);
