@@ -2,6 +2,11 @@
 
 #include <assert.h>
 #include <string>
+#include <math.h>
+
+#include "types.h"
+#include "Directions.h"
+#include "Parameters.h"
 
 using std::string; using std::istream; using std::ostream; using std::endl;
 
@@ -64,12 +69,12 @@ void Map::readFromStream(istream& stream)
 		{
 			stream >> n;
 			assert(isValidNode(n));
-			setNode(x, y, n);
+			setNodeType(x, y, n);
 		}
 	}
 }
 
-void Map::printToStream(ostream& stream) {
+void Map::printToStream(ostream& stream) const {
 	stream << "type ";
 	switch(m_type)
 	{
@@ -83,11 +88,54 @@ void Map::printToStream(ostream& stream) {
 	stream << "map" << endl;
 	for(int y = 0; y < m_height; ++y) {
 		for(int x = 0; x < m_width; ++x) {
-			stream << getNode(x, y);
+			stream << getNodeType(x, y);
 		}
 		stream << endl;
 	}
 
+}
+
+int Map::numNeighbors() const {
+	switch (m_type) {
+	case QUARTILE: return NUM_VALID_QUARTILE_DIRECTIONS;
+	case OCTILE: return NUM_VALID_OCTILE_DIRECTIONS;
+	default:
+	}
+	return 0;
+}
+
+node_t Map::getNeighbor(int x, int y, dir_t dir) const {
+	switch (dir) {
+	case NORTH: return getNode(x, y - 1);
+	case SOUTH: return getNode(x, y + 1);
+	case EAST: return getNode(x - 1, y);
+	case WEST: return getNode(x + 1, y);
+	case NORTH_WEST: return getNode(x+1,y-1);
+	case NORTH_EAST: return getNode(x-1,y-1);
+	case SOUTH_EAST: return getNode(x-1,y+1);
+	case SOUTH_WEST: return getNode(x+1,y+1);
+	default: return FAIL_NODE;
+	}
+}
+
+float Map::getCost(int x, int y, dir_t dir) const {
+	switch (dir) {
+	case NORTH: return BorderingCost;
+	case SOUTH: return BorderingCost;
+	case EAST: return BorderingCost;
+	case WEST: return BorderingCost;
+	case NORTH_WEST: return CornerCost;
+	case NORTH_EAST: return CornerCost;
+	case SOUTH_EAST: return CornerCost;
+	case SOUTH_WEST: return CornerCost;
+	default: return FLT_MAX;
+	}
+}
+
+node_t Map::getNode(int x, int y) const {
+	if (x < 0 || y < 0 || x >= m_width || y >= m_height)
+		return FAIL_NODE;
+	return node_t(x, y);
 }
 
 bool Map::isPathable(char n) const {
@@ -100,7 +148,7 @@ bool Map::isPathable(char n) const {
 	}
 }
 
-bool Map::isConnected(int x, int y, int nx, int ny) {
+bool Map::isConnected(int x, int y, int nx, int ny) const {
     switch (m_type) {
         case OCTILE:
             int xdif = x-nx;
@@ -144,13 +192,13 @@ bool Map::isValidNode(char n) const {
 	}
 }
 
-char Map::getNode(int x, int y) const
+char Map::getNodeType(int x, int y) const
 {
 	if(m_map) return m_map[x][y];
 	return 0;
 }
 
-void Map::setNode(int x, int y, char n) {
+void Map::setNodeType(int x, int y, char n) {
 	if(m_map) m_map[x][y] = n;
 }
 

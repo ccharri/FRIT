@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "types.h"
+
 typedef enum
 {
 	UNKNOWN,
@@ -18,17 +20,22 @@ public:
 
 
 	void readFromStream(std::istream& stream);
-	void printToStream(std::ostream& stream);
+	void printToStream(std::ostream& stream) const;
 
 	int getWidth() const {return m_width;}
 	int getHeight() const {return m_height;}
 	MapType getType() const { return m_type; }
+	int numNeighbors() const;
+	node_t getNeighbor(int x, int y, dir_t dir) const;
+	float getCost(int x, int y, dir_t dir) const;
 
 	bool isPathable(char n) const;
-    bool isConnected(int x, int y, int nx, int ny);
+    bool isConnected(int x, int y, int nx, int ny) const;
 
-	char getNode(int x, int y) const;
-	void setNode(int x, int y, char n);
+	char getNodeType(int x, int y) const;
+	void setNodeType(int x, int y, char n);
+
+	node_t getNode(int x, int y) const;
 
 private:
 	void generateArray();
