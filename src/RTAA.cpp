@@ -6,8 +6,8 @@
 
 using std::vector;
 
-RTAA::RTAA(graph_t& graph) : 
-			m_gValues(0), m_hValues(0), m_current(FAIL_NODE), m_next(FAIL_NODE), m_graph(&graph)
+RTAA::RTAA(graph_t& graph, h_func_t heuristic) : m_heuristic(heuristic),
+			m_gValues(0), m_hValues(0), m_current(FAIL_NODE), m_next(FAIL_NODE), m_end(FAIL_NODE), m_graph(&graph)
 			, m_open(std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, NodeComparison>(this)) {
 	assert(graph.getType() != UNKNOWN);
 
@@ -96,9 +96,20 @@ void RTAA::setStart(node_t& start) {
 
 }
 
-void RTAA::AStar(h_func_t heuristic, const node_t& goal) {
-	int Expands = LookAhead;
-	while (Expands-- > 0) {
+void RTAA::setEnd(node_t& end) {
+	m_end = end;
+
+	for (int x = 0; x < m_graph->getWidth(); ++x) {
+		for (int y = 0; y < m_graph->getHeight(); ++y) {
+			m_gValues[x][y] = 0;
+			m_hValues[x][y] = m_heuristic(node_t(x,y), m_end);
+		}
+	}
+}
+
+void RTAA::AStar(const node_t& goal) {
+	int expands = LookAhead;
+	while (expands-- > 0) {
 		//If nothing left to expand, set error flag and return.
 		if (m_open.empty()) {
 			m_next = FAIL_NODE;
@@ -119,13 +130,11 @@ void RTAA::AStar(h_func_t heuristic, const node_t& goal) {
 			node_t neighbor = m_graph->getNeighbor(top.first, top.second, neighborDirs[i]);
 			if (neighbor == FAIL_NODE) continue;
 			if (m_closed.find(neighbor) != m_closed.end()) continue;
-			float hVal = heuristic(top, goal);
-			float tentativeScore = m_gValues[top.first][top.second] + hVal;
+			float tentativeScore = m_gValues[top.first][top.second] + m_hValues[top.first][top.second];
 			if (/*neighbor not in openset  || */tentativeScore < m_gValues[top.first][top.second])
 			{
 				m_directions[neighbor.first][neighbor.second] = getOppositeDir(neighborDirs[i]);
 				m_gValues[neighbor.first][neighbor.second] = tentativeScore;
-				m_hValues[neighbor.first][neighbor.second] = hVal;
 				/*
 					if(neighbor not in openset)
 						m_open.push(neighbor);
@@ -161,7 +170,7 @@ procedure realtime adaptive astar():
 */
 
 	while (m_current != goal) {
-		AStar(heuristic, goal);
+		AStar(goal);
 		//m_next == 0 is failure
 		if (m_next != FAIL_NODE) return path;
 		for (auto it = m_closed.begin(); it != m_closed.end(); it++) {

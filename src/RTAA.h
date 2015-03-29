@@ -10,14 +10,15 @@
 
 class RTAA : public RealTimeAlgorithm {
 public:
-	RTAA(graph_t& graph);
+	RTAA(graph_t& graph, h_func_t heuristic);
 	~RTAA();
 
 	void setStart(node_t& start) override;
+	void setEnd(node_t& end) override;
 
 	path_t search(graph_t& graph, h_func_t heuristic, const node_t& goal) override;
 private:
-	void AStar(h_func_t heuristic, const node_t& goal);
+	void AStar(const node_t& goal);
 	path_t getResult(const node_t& goal);
 
 	float** m_gValues;
@@ -26,6 +27,7 @@ private:
 	graph_t* m_graph;
 	node_t m_current;
 	node_t m_next;
+	node_t m_end;
 	std::set<node_t> m_closed;
 
 	friend class NodeComparison;
@@ -46,6 +48,8 @@ private:
 		const RTAA* m_rta;
 		const bool m_reverse;
 	};
+
+	h_func_t m_heuristic;
 	
 	std::priority_queue<node_t, std::vector<node_t>, NodeComparison > m_open;
 };

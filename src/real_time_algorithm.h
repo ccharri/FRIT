@@ -5,7 +5,8 @@
 
 class RealTimeAlgorithm {
 public:
-	virtual void setStart(node_t& start)=0;
+	virtual void setStart(node_t& start) = 0;
+	virtual void setEnd(node_t& end) = 0;
 
 	virtual path_t search(graph_t& graph, h_func_t heuristic, const node_t& goal) = 0;
 };
