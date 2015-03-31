@@ -7,7 +7,7 @@ IdealTree::IdealTree(const node_t& goalstate, const graph_t& graph) {
 
 }
 
-IdealTree::~IdealTree {
+IdealTree::~IdealTree() {
 
 }
 

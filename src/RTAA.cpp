@@ -131,7 +131,7 @@ void RTAA::AStar(const node_t& goal) {
 			if (neighbor == FAIL_NODE) continue;
 			if (m_closed.find(neighbor) != m_closed.end()) continue;
 			float tentativeScore = m_gValues[top.first][top.second] + m_hValues[top.first][top.second];
-			if (/*neighbor not in openset  || */tentativeScore < m_gValues[top.first][top.second])
+			if (m_open.find(neighbor) != m_open.end()  || tentativeScore < m_gValues[top.first][top.second])
 			{
 				m_directions[neighbor.first][neighbor.second] = getOppositeDir(neighborDirs[i]);
 				m_gValues[neighbor.first][neighbor.second] = tentativeScore;

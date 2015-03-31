@@ -4,6 +4,8 @@
 #include <iostream>
 
 #include "types.h"
+#include "node.h"
+#include "Directions.h"
 
 typedef enum
 {

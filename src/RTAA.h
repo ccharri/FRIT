@@ -6,6 +6,7 @@
 #include <set>
 
 #include "real_time_algorithm.h"
+#include "IterPrioQueue.h"
 #include "Directions.h"
 
 class RTAA : public RealTimeAlgorithm {
@@ -51,7 +52,7 @@ private:
 
 	h_func_t m_heuristic;
 	
-	std::priority_queue<node_t, std::vector<node_t>, NodeComparison > m_open;
+	IterPrioQueue<node_t, std::vector<node_t>, NodeComparison > m_open;
 };
 
 #endif
