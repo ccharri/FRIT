@@ -8,28 +8,30 @@
 #include "real_time_algorithm.h"
 #include "IterPrioQueue.h"
 #include "Directions.h"
+#include "node.h"
+#include "map.h"
 
 class RTAA : public RealTimeAlgorithm {
 public:
-	RTAA(graph_t& graph, h_func_t heuristic);
+    RTAA(Map& graph, float (*heuristic)(node_t, node_t));
 	~RTAA();
 
-	void setStart(node_t& start) override;
-	void setEnd(node_t& end) override;
+    void setStart(node_t& start) override;
+    void setEnd(node_t& end) override;
 
-	path_t search(graph_t& graph, h_func_t heuristic, const node_t& goal) override;
+    std::vector<node_t> search(Map& graph, float (*heuristic)(node_t, node_t), const node_t& goal) override;
 private:
-	void AStar(const node_t& goal);
-	path_t getResult(const node_t& goal);
+    void AStar(const node_t& goal);
+    std::vector<node_t> getResult(const node_t& goal);
 
 	float** m_gValues;
 	float** m_hValues;
-	dir_t** m_directions;
-	graph_t* m_graph;
-	node_t m_current;
-	node_t m_next;
-	node_t m_end;
-	std::set<node_t> m_closed;
+	char** m_directions;
+	Map* m_graph;
+    node_t m_current;
+    node_t m_next;
+    node_t m_end;
+    std::set<node_t> m_closed;
 
 	friend class NodeComparison;
 
@@ -50,9 +52,9 @@ private:
 		const bool m_reverse;
 	};
 
-	h_func_t m_heuristic;
+    float (*m_heuristic)(node_t, node_t);
 	
-	IterPrioQueue<node_t, std::vector<node_t>, NodeComparison > m_open;
+    IterPrioQueue<node_t, NodeComparison > m_open;
 };
 
 #endif

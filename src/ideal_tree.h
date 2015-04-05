@@ -1,18 +1,18 @@
 #ifndef _IDEAL_TREE_H_
 #define _IDEAL_TREE_H_
 
-#include "types.h"
+#include "map.h"
 
 class IdealTree {
 public:
-  IdealTree(const node_t& goalstate, const graph_t& graph);
+    IdealTree(const std::pair<int, int>& goalstate, const Map& graph);
 
   ~IdealTree();
 
-  bool inTree(const node_t& v);
+    bool inTree(const std::pair<int, int>& v);
 
 private:
-  color_t m_color;
+  int m_color;
 
 
 };

@@ -3,7 +3,6 @@
 
 #include <iostream>
 
-#include "types.h"
 #include "node.h"
 #include "Directions.h"
 
@@ -28,8 +27,8 @@ public:
 	int getHeight() const {return m_height;}
 	MapType getType() const { return m_type; }
 	int numNeighbors() const;
-	node_t getNeighbor(int x, int y, dir_t dir) const;
-	float getCost(int x, int y, dir_t dir) const;
+    std::pair<int, int> getNeighbor(int x, int y, char dir) const;
+	float getCost(int x, int y, char dir) const;
 
 	bool isPathable(char n) const;
     bool isConnected(int x, int y, int nx, int ny) const;
@@ -37,7 +36,7 @@ public:
 	char getNodeType(int x, int y) const;
 	void setNodeType(int x, int y, char n);
 
-	node_t getNode(int x, int y) const;
+    std::pair<int, int> getNode(int x, int y) const;
 
 private:
 	void generateArray();

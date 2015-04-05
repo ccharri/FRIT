@@ -4,11 +4,9 @@
 #include "map.h"
 #include <type_traits>
 
-typedef char dir_t ;
+#define VALUE(enum, ident) ((std::underlying_type< enum >::type) enum ::ident)
 
-#define VALUE(enum, ident) ( (std::underlying_type<enum>::type)enum::ident)
-
-enum class QUARTILE_DIRECTION : dir_t {
+enum class QUARTILE_DIRECTION : char {
 	NORTH= 'N',
 	EAST = 'E',
 	SOUTH = 'S',
@@ -16,7 +14,7 @@ enum class QUARTILE_DIRECTION : dir_t {
 	NONE = 0
 };
 
-enum class OCTILE_DIRECTION : dir_t {
+enum class OCTILE_DIRECTION : char {
 	NORTH = VALUE(QUARTILE_DIRECTION, NORTH),
 	EAST = VALUE(QUARTILE_DIRECTION, EAST),
 	SOUTH = VALUE(QUARTILE_DIRECTION, SOUTH),
@@ -29,7 +27,7 @@ enum class OCTILE_DIRECTION : dir_t {
 };
 
 
-dir_t VALID_QUARTILE_DIRECTIONS[4] = { 
+char VALID_QUARTILE_DIRECTIONS[4] = {
     VALUE(QUARTILE_DIRECTION, NORTH),
 	VALUE(QUARTILE_DIRECTION, EAST),
 	VALUE(QUARTILE_DIRECTION, SOUTH),
@@ -38,7 +36,7 @@ dir_t VALID_QUARTILE_DIRECTIONS[4] = {
 
 int NUM_VALID_QUARTILE_DIRECTIONS = sizeof(VALID_QUARTILE_DIRECTIONS) / sizeof(QUARTILE_DIRECTION);
 
-dir_t VALID_OCTILE_DIRECTIONS[8] = { 
+char VALID_OCTILE_DIRECTIONS[8] = {
 	 VALUE(OCTILE_DIRECTION, NORTH),
 	 VALUE(OCTILE_DIRECTION, NORTH_EAST),
 	 VALUE(OCTILE_DIRECTION, EAST),
@@ -51,7 +49,7 @@ dir_t VALID_OCTILE_DIRECTIONS[8] = {
 
 int NUM_VALID_OCTILE_DIRECTIONS = sizeof(VALID_OCTILE_DIRECTIONS) / sizeof(OCTILE_DIRECTION);
 
-dir_t getOppositeDir(dir_t dir) {
+char getOppositeDir(char dir) {
 	switch (dir) {
 	case VALUE(OCTILE_DIRECTION, NORTH):        return VALUE(OCTILE_DIRECTION, SOUTH);
 	case VALUE(OCTILE_DIRECTION, SOUTH):        return VALUE(OCTILE_DIRECTION, NORTH);

@@ -3,8 +3,8 @@
 #include <assert.h>
 #include <string>
 #include <math.h>
+#include <float.h>
 
-#include "types.h"
 #include "Directions.h"
 #include "Parameters.h"
 
@@ -99,35 +99,35 @@ int Map::numNeighbors() const {
 	switch (m_type) {
 	case QUARTILE: return NUM_VALID_QUARTILE_DIRECTIONS;
 	case OCTILE: return NUM_VALID_OCTILE_DIRECTIONS;
-	default:
+        default: break;
 	}
 	return 0;
 }
 
-node_t Map::getNeighbor(int x, int y, dir_t dir) const {
+node_t Map::getNeighbor(int x, int y, char dir) const {
 	switch (dir) {
-	case NORTH: return getNode(x, y - 1);
-	case SOUTH: return getNode(x, y + 1);
-	case EAST: return getNode(x - 1, y);
-	case WEST: return getNode(x + 1, y);
-	case NORTH_WEST: return getNode(x+1,y-1);
-	case NORTH_EAST: return getNode(x-1,y-1);
-	case SOUTH_EAST: return getNode(x-1,y+1);
-	case SOUTH_WEST: return getNode(x+1,y+1);
+	case VALUE(OCTILE_DIRECTION, NORTH): return getNode(x, y - 1);
+	case VALUE(OCTILE_DIRECTION, SOUTH): return getNode(x, y + 1);
+	case VALUE(OCTILE_DIRECTION, EAST): return getNode(x - 1, y);
+	case VALUE(OCTILE_DIRECTION, WEST): return getNode(x + 1, y);
+	case VALUE(OCTILE_DIRECTION, NORTH_WEST): return getNode(x+1,y-1);
+	case VALUE(OCTILE_DIRECTION, NORTH_EAST): return getNode(x-1,y-1);
+	case VALUE(OCTILE_DIRECTION, SOUTH_EAST): return getNode(x-1,y+1);
+	case VALUE(OCTILE_DIRECTION, SOUTH_WEST): return getNode(x+1,y+1);
 	default: return FAIL_NODE;
 	}
 }
 
-float Map::getCost(int x, int y, dir_t dir) const {
+float Map::getCost(int x, int y, char dir) const {
 	switch (dir) {
-	case NORTH: return BorderingCost;
-	case SOUTH: return BorderingCost;
-	case EAST: return BorderingCost;
-	case WEST: return BorderingCost;
-	case NORTH_WEST: return CornerCost;
-	case NORTH_EAST: return CornerCost;
-	case SOUTH_EAST: return CornerCost;
-	case SOUTH_WEST: return CornerCost;
+	case VALUE(OCTILE_DIRECTION, NORTH): return BorderingCost;
+	case VALUE(OCTILE_DIRECTION, SOUTH): return BorderingCost;
+	case VALUE(OCTILE_DIRECTION, EAST): return BorderingCost;
+	case VALUE(OCTILE_DIRECTION, WEST): return BorderingCost;
+	case VALUE(OCTILE_DIRECTION, NORTH_WEST): return CornerCost;
+	case VALUE(OCTILE_DIRECTION, NORTH_EAST): return CornerCost;
+	case VALUE(OCTILE_DIRECTION, SOUTH_EAST): return CornerCost;
+	case VALUE(OCTILE_DIRECTION, SOUTH_WEST): return CornerCost;
 	default: return FLT_MAX;
 	}
 }
@@ -149,10 +149,12 @@ bool Map::isPathable(char n) const {
 }
 
 bool Map::isConnected(int x, int y, int nx, int ny) const {
+    int xdif;
+    int ydif;
     switch (m_type) {
         case OCTILE:
-            int xdif = x-nx;
-            int ydif = y-ny;
+            xdif = x-nx;
+            ydif = y-ny;
             if(abs(xdif) > 1) return false;
             if(abs(ydif) > 1) return false;
             if(x == nx && y == ny) return false;
@@ -166,8 +168,8 @@ bool Map::isConnected(int x, int y, int nx, int ny) const {
             }
             else return (y==ny && abs(xdif) == 1) || (x==nx && abs(ydif) == 1);
         case QUARTILE:
-            int xdif = x-nx;
-            int ydif = y-ny;
+            xdif = x-nx;
+            ydif = y-ny;
             if(abs(xdif) > 1) return false;
             if(abs(ydif) > 1) return false;
             if(x == nx && y == ny) return false;
