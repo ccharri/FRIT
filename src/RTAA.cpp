@@ -128,7 +128,7 @@ void RTAA::AStar(const node_t& goal) {
 		}
 
 		m_closed.insert(top);
-		char* neighborDirs = (m_graph->getType() == OCTILE) ? VALID_OCTILE_DIRECTIONS : VALID_QUARTILE_DIRECTIONS;
+		const char* neighborDirs = (m_graph->getType() == OCTILE) ? VALID_OCTILE_DIRECTIONS : VALID_QUARTILE_DIRECTIONS;
 		for (int i = 0; i < m_graph->numNeighbors(); ++i) {
 			node_t neighbor = m_graph->getNeighbor(top.first, top.second, neighborDirs[i]);
 			if (neighbor == FAIL_NODE) continue;

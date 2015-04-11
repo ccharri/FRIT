@@ -12,7 +12,7 @@
 
 typedef std::pair<int, int> node_t; //Type of vertices.
 
-node_t FAIL_NODE(-1, -1);
+const node_t FAIL_NODE(-1, -1);
 
 
 #endif
