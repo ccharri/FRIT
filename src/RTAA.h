@@ -20,6 +20,8 @@ public:
     void setEnd(node_t& end) override;
 
     std::vector<node_t> search(Map& graph, float (*heuristic)(node_t, node_t), const node_t& goal) override;
+protected:
+    bool isGoalNode(const node_t& node);
 private:
     void AStar(const node_t& goal);
     std::vector<node_t> getResult(const node_t& goal);

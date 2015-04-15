@@ -1,10 +1,10 @@
 #ifndef _PARAMETERS_H_
 #define _PARAMETERS_H_
 
-extern int LookAhead;
-extern int MoveMax;
+extern const int LookAhead;
+extern const int MoveMax;
 
-extern float BorderingCost;
-extern float CornerCost;
+extern const float BorderingCost;
+extern const float CornerCost;
 
 #endif

@@ -10,8 +10,8 @@
 
 #include <math.h>
 
-int LookAhead = 100;
-int MoveMax = 100;
+const int LookAhead = 100;
+const int MoveMax = 100;
 
-float BorderingCost = 1;
-float CornerCost = sqrt(2);
+const float BorderingCost = 1;
+const float CornerCost = sqrt(2);

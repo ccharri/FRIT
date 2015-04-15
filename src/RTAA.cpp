@@ -110,6 +110,10 @@ void RTAA::setEnd(node_t& end) {
 	}
 }
 
+bool RTAA::isGoalNode(const node_t &node){
+    return node == m_end;
+}
+
 void RTAA::AStar(const node_t& goal) {
 	int expands = LookAhead;
 	while (expands-- > 0) {
@@ -122,7 +126,7 @@ void RTAA::AStar(const node_t& goal) {
 		node_t top = m_open.top();
 		m_open.pop();
 
-		if (top == goal) {
+		if (isGoalNode(top)) {
 			m_next = top;
 			return;
 		}
@@ -133,7 +137,7 @@ void RTAA::AStar(const node_t& goal) {
 			node_t neighbor = m_graph->getNeighbor(top.first, top.second, neighborDirs[i]);
 			if (neighbor == FAIL_NODE) continue;
 			if (m_closed.find(neighbor) != m_closed.end()) continue;
-			float tentativeScore = m_gValues[top.first][top.second] + m_hValues[top.first][top.second];
+			float tentativeScore = m_gValues[top.first][top.second] + m_graph->getCost(top.first, top.second, neighborDirs[i]);
 			if (find(m_open.begin(), m_open.end(), neighbor) == m_open.end()  || tentativeScore < m_gValues[top.first][top.second])
 			{
 				m_directions[neighbor.first][neighbor.second] = getOppositeDir(neighborDirs[i]);
@@ -172,17 +176,15 @@ procedure realtime adaptive astar():
 {17} return SUCCESS;
 */
 
-	while (m_current != goal) {
+	while (!isGoalNode(m_current)) {
 		AStar(goal);
-		//m_next == 0 is failure
-		if (m_next != FAIL_NODE) return path;
+		if (m_next == FAIL_NODE) return path;
 		for (auto it = m_closed.begin(); it != m_closed.end(); it++) {
 			m_hValues[it->first][it->second] = m_gValues[m_current.first][m_current.second] + m_hValues[m_current.first][m_current.second] - m_gValues[it->first][it->second];
 		}
 		int movements = MoveMax;
 		while (m_current != m_next && movements > 0) {
-            int cost = 0;
-
+            m_current = m_graph->getNeighbor(m_current.first, m_current.second, m_directions[m_current.first][m_current.second]);
 			movements--;
 		}
 	}
