@@ -20,6 +20,8 @@ public:
     virtual void setStart(node_t& start) override;
     virtual void setEnd(node_t& end) override;
 
+	virtual float getGoalValue(const node_t& node) { return m_gValues[node.first][node.second]; }
+
     virtual std::list<node_t> search(Map& graph, float (*heuristic)(node_t, node_t), const node_t& goal) override;
 protected:
     virtual bool isGoalNode(const node_t& node);
