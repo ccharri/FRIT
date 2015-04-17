@@ -6,11 +6,11 @@
 
 #include "Parameters.h"
 
-using std::vector;
+using std::list;
 using std::pair;
 
 RTAA::RTAA(Map& graph, float (*heuristic)(node_t, node_t)) : m_heuristic(heuristic),
-			m_gValues(0), m_hValues(0), m_current(FAIL_NODE), m_next(FAIL_NODE), m_end(FAIL_NODE), m_graph(&graph)
+			m_gValues(0), m_hValues(0), m_current(FAIL_NODE), m_next(FAIL_NODE), m_end(FAIL_NODE), m_start(FAIL_NODE), m_graph(&graph)
 			, m_open(IterPrioQueue<node_t, NodeComparison>(this)) {
 	assert(graph.getType() != UNKNOWN);
 
@@ -80,7 +80,7 @@ RTAA::~RTAA() {
 
 void RTAA::setStart(node_t& start) {
 	//Set current location
-	m_current = start;
+	m_start = m_current = start;
 
 	//Clear current state.
 	while (!m_open.empty()) m_open.pop();
@@ -114,7 +114,7 @@ bool RTAA::isGoalNode(const node_t &node){
     return node == m_end;
 }
 
-void RTAA::AStar(const node_t& goal) {
+void RTAA::AStar(Map& graph, const node_t& goal) {
 	int expands = LookAhead;
 	while (expands-- > 0) {
 		//If nothing left to expand, set error flag and return.
@@ -132,12 +132,12 @@ void RTAA::AStar(const node_t& goal) {
 		}
 
 		m_closed.insert(top);
-		const char* neighborDirs = (m_graph->getType() == OCTILE) ? VALID_OCTILE_DIRECTIONS : VALID_QUARTILE_DIRECTIONS;
-		for (int i = 0; i < m_graph->numNeighbors(); ++i) {
-			node_t neighbor = m_graph->getNeighbor(top.first, top.second, neighborDirs[i]);
+		const char* neighborDirs = (graph.getType() == OCTILE) ? VALID_OCTILE_DIRECTIONS : VALID_QUARTILE_DIRECTIONS;
+		for (int i = 0; i < graph.numNeighbors(); ++i) {
+			node_t neighbor = graph.getNeighbor(top.first, top.second, neighborDirs[i]);
 			if (neighbor == FAIL_NODE) continue;
 			if (m_closed.find(neighbor) != m_closed.end()) continue;
-			float tentativeScore = m_gValues[top.first][top.second] + m_graph->getCost(top.first, top.second, neighborDirs[i]);
+			float tentativeScore = m_gValues[top.first][top.second] + graph.getCost(top.first, top.second, neighborDirs[i]);
 			if (find(m_open.begin(), m_open.end(), neighbor) == m_open.end()  || tentativeScore < m_gValues[top.first][top.second])
 			{
 				m_directions[neighbor.first][neighbor.second] = getOppositeDir(neighborDirs[i]);
@@ -152,9 +152,19 @@ void RTAA::AStar(const node_t& goal) {
 	}
 }
 
-vector<node_t> RTAA::search(Map& graph, float (*heuristic)(node_t, node_t), const node_t& goal) {
-	vector<node_t> path;
+std::list<node_t> RTAA::getResult(const node_t& goal)
+{
+	list<node_t> path;
+	node_t next = m_end;
+	path.push_back(next);
+	while (next != m_start) {
+		next = m_graph->getNeighbor(next.first, next.second, m_directions[next.first][next.second]);
+		path.push_front(next);
+	}
+	return path;
+}
 
+list<node_t> RTAA::search(Map& graph, float(*heuristic)(node_t, node_t), const node_t& goal) {
 	/*
 procedure realtime adaptive astar():
 {01} while (scurr 6∈ GOAL) do
@@ -177,17 +187,17 @@ procedure realtime adaptive astar():
 */
 
 	while (!isGoalNode(m_current)) {
-		AStar(goal);
-		if (m_next == FAIL_NODE) return path;
+		AStar(graph, goal);
+		if (m_next == FAIL_NODE) return list<node_t>();
 		for (auto it = m_closed.begin(); it != m_closed.end(); it++) {
 			m_hValues[it->first][it->second] = m_gValues[m_current.first][m_current.second] + m_hValues[m_current.first][m_current.second] - m_gValues[it->first][it->second];
 		}
 		int movements = MoveMax;
 		while (m_current != m_next && movements > 0) {
-            m_current = m_graph->getNeighbor(m_current.first, m_current.second, m_directions[m_current.first][m_current.second]);
+            m_current = graph.getNeighbor(m_current.first, m_current.second, m_directions[m_current.first][m_current.second]);
 			movements--;
 		}
 	}
 
-	return path;
+	return getResult(m_end);
 }

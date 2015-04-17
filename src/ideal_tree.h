@@ -1,20 +1,22 @@
 #ifndef _IDEAL_TREE_H_
 #define _IDEAL_TREE_H_
 
+#include "RTAA.h"
+
+#include "node.h"
 #include "map.h"
 
-class IdealTree {
+class IT_RTAA : public RTAA {
 public:
-    IdealTree(const std::pair<int, int>& goalstate, const Map& graph);
+	IT_RTAA(Map& graph, float(*heuristic)(node_t, node_t));
 
-  ~IdealTree();
-
-    bool inTree(const std::pair<int, int>& v);
-
+	~IT_RTAA();
+protected:
+	virtual bool isGoalNode(const node_t& node) override;
+	inline virtual node_t getParent(const node_t& node);
 private:
-  int m_color;
-
-
+	int m_color = 0;
+	int** m_colors;
 };
 
 #endif

@@ -14,4 +14,4 @@ const int LookAhead = 100;
 const int MoveMax = 100;
 
 const float BorderingCost = 1;
-const float CornerCost = sqrt(2);
+const float CornerCost = sqrt(2.);

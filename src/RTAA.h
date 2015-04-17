@@ -1,30 +1,33 @@
 #ifndef _RTAA_H_
 #define _RTAA_H_
 
-#include <vector>
+#include <list>
 #include <queue>
 #include <set>
 
 #include "real_time_algorithm.h"
 #include "IterPrioQueue.h"
 #include "Directions.h"
+#include "Parameters.h"
 #include "node.h"
 #include "map.h"
 
 class RTAA : public RealTimeAlgorithm {
 public:
     RTAA(Map& graph, float (*heuristic)(node_t, node_t));
-	~RTAA();
+	virtual ~RTAA();
 
-    void setStart(node_t& start) override;
-    void setEnd(node_t& end) override;
+    virtual void setStart(node_t& start) override;
+    virtual void setEnd(node_t& end) override;
 
-    std::vector<node_t> search(Map& graph, float (*heuristic)(node_t, node_t), const node_t& goal) override;
+    virtual std::list<node_t> search(Map& graph, float (*heuristic)(node_t, node_t), const node_t& goal) override;
 protected:
-    bool isGoalNode(const node_t& node);
+    virtual bool isGoalNode(const node_t& node);
+	inline Map& getMap() { return *m_graph; }
+	inline node_t getGoal() { return m_end; }
 private:
-    void AStar(const node_t& goal);
-    std::vector<node_t> getResult(const node_t& goal);
+    void AStar(Map& graph, const node_t& goal);
+    std::list<node_t> getResult(const node_t& goal);
 
 	float** m_gValues;
 	float** m_hValues;
@@ -33,6 +36,7 @@ private:
     node_t m_current;
     node_t m_next;
     node_t m_end;
+	node_t m_start;
     std::set<node_t> m_closed;
 
 	friend class NodeComparison;

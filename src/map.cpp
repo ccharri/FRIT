@@ -108,12 +108,12 @@ node_t Map::getNeighbor(int x, int y, char dir) const {
 	switch (dir) {
 	case VALUE(OCTILE_DIRECTION, NORTH): return getNode(x, y - 1);
 	case VALUE(OCTILE_DIRECTION, SOUTH): return getNode(x, y + 1);
-	case VALUE(OCTILE_DIRECTION, EAST): return getNode(x - 1, y);
-	case VALUE(OCTILE_DIRECTION, WEST): return getNode(x + 1, y);
-	case VALUE(OCTILE_DIRECTION, NORTH_WEST): return getNode(x+1,y-1);
-	case VALUE(OCTILE_DIRECTION, NORTH_EAST): return getNode(x-1,y-1);
-	case VALUE(OCTILE_DIRECTION, SOUTH_EAST): return getNode(x-1,y+1);
-	case VALUE(OCTILE_DIRECTION, SOUTH_WEST): return getNode(x+1,y+1);
+	case VALUE(OCTILE_DIRECTION, EAST): return getNode(x + 1, y);
+	case VALUE(OCTILE_DIRECTION, WEST): return getNode(x - 1, y);
+	case VALUE(OCTILE_DIRECTION, NORTH_WEST): return getNode(x-1,y-1);
+	case VALUE(OCTILE_DIRECTION, NORTH_EAST): return getNode(x+1,y-1);
+	case VALUE(OCTILE_DIRECTION, SOUTH_EAST): return getNode(x+1,y+1);
+	case VALUE(OCTILE_DIRECTION, SOUTH_WEST): return getNode(x-1,y+1);
 	default: return FAIL_NODE;
 	}
 }
@@ -158,13 +158,13 @@ bool Map::isConnected(int x, int y, int nx, int ny) const {
             if(abs(xdif) > 1) return false;
             if(abs(ydif) > 1) return false;
             if(x == nx && y == ny) return false;
-            //if(!(isPathable(getNode(x, y)) && isPathable(getNode(nx, ny)))) return false;
+            if(!(isPathable(getNodeType(x, y)) && isPathable(getNodeType(nx, ny)))) return false;
             if((abs(xdif) == 1) && (abs(ydif) == 1)) //If a corner
             {
                 //Only allow connections to corners if both neighboring middle nodes are.
                 //Otherwise, the diagonal is cut off and so not diagonally connected.
-                //return isPathable(getNode(nx,y)) && isPathable(getNode(x, ny));
-				return true;
+                return isPathable(getNodeType(nx,y)) && isPathable(getNodeType(x, ny));
+				//return true;
             }
             else return (y==ny && abs(xdif) == 1) || (x==nx && abs(ydif) == 1);
         case QUARTILE:
@@ -173,7 +173,7 @@ bool Map::isConnected(int x, int y, int nx, int ny) const {
             if(abs(xdif) > 1) return false;
             if(abs(ydif) > 1) return false;
             if(x == nx && y == ny) return false;
-            //if(!(isPathable(getNode(x, y)) && isPathable(getNode(nx, ny)))) return false;
+            if(!(isPathable(getNodeType(x, y)) && isPathable(getNodeType(nx, ny)))) return false;
             return (y==ny && abs(xdif) == 1) || (x==nx && abs(ydif) == 1);
         default:
             return false;
