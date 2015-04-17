@@ -8,7 +8,7 @@
 
 class RealTimeAlgorithm {
 public:
-	virtual ~RealTimeAlgorithm() = 0;
+	virtual ~RealTimeAlgorithm() = 0 {};
 
 	virtual void setStart(node_t& start) = 0;
 	virtual void setEnd(node_t& end) = 0;

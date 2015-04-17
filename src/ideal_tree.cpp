@@ -31,3 +31,8 @@ bool IT_RTAA::isGoalNode(const node_t& node)
 	}
 	return true;
 }
+
+node_t IT_RTAA::getParent(const node_t& node)
+{
+	return FAIL_NODE;
+}
