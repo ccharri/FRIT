@@ -9,10 +9,10 @@
 //  Copyright (c) 2015 University of Michigan. All rights reserved.
 //
 
+#include <utility>
 
-typedef std::pair<int, int> node_t; //Type of vertices.
+typedef std::pair<int, int> node_t;  // Type of vertices.
 
 const node_t FAIL_NODE(-1, -1);
-
 
 #endif

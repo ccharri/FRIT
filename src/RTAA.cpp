@@ -1,171 +1,209 @@
 ﻿#include "RTAA.h"
 
-
 #include <assert.h>
 #include <algorithm>
+#include <float.h>
 
 #include "Parameters.h"
 
 using std::list;
 using std::pair;
 
-RTAA::RTAA(Map& graph, float (*heuristic)(node_t, node_t)) : m_heuristic(heuristic),
-			m_gValues(0), m_hValues(0), m_current(FAIL_NODE), m_next(FAIL_NODE), m_end(FAIL_NODE), m_start(FAIL_NODE), m_graph(&graph)
-			, m_open(IterPrioQueue<node_t, NodeComparison>(this)) {
-	assert(graph.getType() != UNKNOWN);
+RTAA::RTAA(Map &graph, float (*heuristic)(node_t, node_t))
+    : m_heuristic(heuristic),
+      m_gValues(0),
+      m_hValues(0),
+      m_current(FAIL_NODE),
+      m_next(FAIL_NODE),
+      m_end(FAIL_NODE),
+      m_start(FAIL_NODE),
+      m_graph(&graph),
+      m_open(IterPrioQueue<node_t, NodeComparison>(NodeComparison(this, false))) {
+  assert(graph.getType() != UNKNOWN);
 
-	m_gValues = new float*[graph.getWidth()];
-	for (int i = 0; i < graph.getWidth(); ++i)
-	{
-		m_gValues[i] = new float[graph.getHeight()];
-	}
+  m_gValues = new float *[graph.getWidth()];
+  for (int i = 0; i < graph.getWidth(); ++i) {
+    m_gValues[i] = new float[graph.getHeight()];
+  }
 
-	m_hValues = new float*[graph.getWidth()];
-	for (int i = 0; i < graph.getWidth(); ++i)
-	{
-		m_hValues[i] = new float[graph.getHeight()];
-	}
-	switch (graph.getType()){
-	case QUARTILE:
-		m_directions = (char**)new QUARTILE_DIRECTION*[graph.getWidth()];
-		for (int i = 0; i < graph.getWidth(); ++i)
-		{
-			((QUARTILE_DIRECTION**)m_directions)[i] = new QUARTILE_DIRECTION[graph.getHeight()];
-		}
-		break;
-	case OCTILE:
-		m_directions = (char**)new OCTILE_DIRECTION*[graph.getWidth()];
-		for (int i = 0; i < graph.getWidth(); ++i)
-		{
-			((OCTILE_DIRECTION**)m_directions)[i] = new OCTILE_DIRECTION[graph.getHeight()];
-		}
-		break;
-        default: break;
-	}
+  m_hValues = new float *[graph.getWidth()];
+  for (int i = 0; i < graph.getWidth(); ++i) {
+    m_hValues[i] = new float[graph.getHeight()];
+  }
+  switch (graph.getType()) {
+    case QUARTILE:
+      m_directions = (char **)new QUARTILE_DIRECTION *[graph.getWidth()];
+      for (int i = 0; i < graph.getWidth(); ++i) {
+        ((QUARTILE_DIRECTION **)m_directions)[i] =
+            new QUARTILE_DIRECTION[graph.getHeight()];
+      }
+      break;
+    case OCTILE:
+      m_directions = (char **)new OCTILE_DIRECTION *[graph.getWidth()];
+      for (int i = 0; i < graph.getWidth(); ++i) {
+        ((OCTILE_DIRECTION **)m_directions)[i] =
+            new OCTILE_DIRECTION[graph.getHeight()];
+      }
+      break;
+    default:
+      break;
+  }
 }
 
 RTAA::~RTAA() {
-	for (int i = 0; i < m_graph->getWidth(); ++i)
-	{
-		delete m_gValues[i];
-	}
-	delete m_gValues;
-	m_gValues = 0;
+  for (int i = 0; i < m_graph->getWidth(); ++i) {
+    delete m_gValues[i];
+  }
+  delete m_gValues;
+  m_gValues = 0;
 
-	for (int i = 0; i < m_graph->getWidth(); ++i)
-	{
-		delete m_hValues[i];
-	}
-	delete m_hValues;
-	m_hValues = 0;
+  for (int i = 0; i < m_graph->getWidth(); ++i) {
+    delete m_hValues[i];
+  }
+  delete m_hValues;
+  m_hValues = 0;
 
-	switch (m_graph->getType()) {
-	case QUARTILE:
-		for (int i = 0; i < m_graph->getWidth(); ++i)
-		{
-			delete ((QUARTILE_DIRECTION**)m_directions)[i];
-		}
-		break;
-	case OCTILE:
-		for (int i = 0; i < m_graph->getWidth(); ++i)
-		{
-			delete ((OCTILE_DIRECTION**)m_directions)[i];
-		}
-		break;
-        default: break;
-	}
-	delete m_directions;
-	m_directions = 0;
+  switch (m_graph->getType()) {
+    case QUARTILE:
+      for (int i = 0; i < m_graph->getWidth(); ++i) {
+        delete ((QUARTILE_DIRECTION **)m_directions)[i];
+      }
+      break;
+    case OCTILE:
+      for (int i = 0; i < m_graph->getWidth(); ++i) {
+        delete ((OCTILE_DIRECTION **)m_directions)[i];
+      }
+      break;
+    default:
+      break;
+  }
+  delete m_directions;
+  m_directions = 0;
 }
 
-void RTAA::setStart(node_t& start) {
-	//Set current location
-	m_start = m_current = start;
+void RTAA::setStart(node_t start) {
+  // Set current location
+  m_start = m_current = start;
 
-	//Clear current state.
-	while (!m_open.empty()) m_open.pop();
-	m_closed.clear();
-	m_next = FAIL_NODE;
+  // Clear current state.
+  while (!m_open.empty()) m_open.pop();
+  m_closed.clear();
+  m_next = FAIL_NODE;
 
-	//Initialize variables
-	m_open.push(start);
+  // Initialize variables
+  m_open.push(start);
 
-	for (int x = 0; x < m_graph->getWidth(); ++x) {
-		for (int y = 0; y < m_graph->getHeight(); ++y) {
-			m_gValues[x][y] = 0;
-			m_hValues[x][y] = 0;
-		}
-	}
-
+  for (int x = 0; x < m_graph->getWidth(); ++x) {
+    for (int y = 0; y < m_graph->getHeight(); ++y) {
+      m_gValues[x][y] = FLT_MAX;
+      m_hValues[x][y] = FLT_MAX;
+      m_directions[x][y] = 0;
+    }
+  }
+    m_gValues[m_start.first][m_start.second] = 0;
 }
 
-void RTAA::setEnd(node_t& end) {
-	m_end = end;
+void RTAA::setEnd(node_t end) {
+  m_end = end;
 
-	for (int x = 0; x < m_graph->getWidth(); ++x) {
-		for (int y = 0; y < m_graph->getHeight(); ++y) {
-			m_gValues[x][y] = 0;
-			m_hValues[x][y] = m_heuristic(node_t(x,y), m_end);
-		}
-	}
+  for (int x = 0; x < m_graph->getWidth(); ++x) {
+    for (int y = 0; y < m_graph->getHeight(); ++y) {
+      m_gValues[x][y] = FLT_MAX;
+      m_hValues[x][y] = m_heuristic(node_t(x, y), m_end);
+        m_directions[x][y] = 0;
+    }
+  }
+    
+    m_gValues[m_start.first][m_start.second] = 0;
 }
 
-bool RTAA::isGoalNode(const node_t &node){
-    return node == m_end;
+bool RTAA::isGoalNode(const node_t &node) { return node == m_end; }
+
+void RTAA::AStar(Map &graph) {
+  int expands = LookAhead;
+  while (expands-- > 0) {
+    // If nothing left to expand, set error flag and return.
+    if (m_open.empty()) {
+      m_next = FAIL_NODE;
+      return;
+    }
+
+    node_t top = m_open.top();
+      float fValue = getGuess(top);
+      if(m_hValues[top.first][top.second] < 5.) {
+          int i = 0;
+      }
+      
+    m_open.pop();
+    m_next = m_open.empty() ? FAIL_NODE : m_open.top();
+
+    if (isGoalNode(top)) {
+      m_next = top;
+      return;
+    }
+
+    m_closed.insert(top);
+    const char *neighborDirs = (graph.getType() == OCTILE)
+                                   ? VALID_OCTILE_DIRECTIONS
+                                   : VALID_QUARTILE_DIRECTIONS;
+    for (int i = 0; i < graph.numNeighbors(); ++i) {
+      node_t neighbor =
+          graph.getNeighbor(top.first, top.second, neighborDirs[i]);
+      if (neighbor == FAIL_NODE) continue;
+      if (!graph.isConnected(top.first, top.second, neighbor.first,
+                             neighbor.second))
+        continue;
+      if (m_closed.find(neighbor) != m_closed.end()) continue;
+      float tentativeScore =
+          m_gValues[top.first][top.second] +
+          graph.getCost(top.first, top.second, neighborDirs[i]);
+      if (find(m_open.begin(), m_open.end(), neighbor) == m_open.end() ||
+          tentativeScore < m_gValues[neighbor.first][neighbor.second]) {
+        m_directions[neighbor.first][neighbor.second] =
+            getOppositeDir(neighborDirs[i]);
+        m_gValues[neighbor.first][neighbor.second] = tentativeScore;
+        if (find(m_open.begin(), m_open.end(), neighbor) == m_open.end()) {
+          m_open.push(neighbor);
+        }
+      }
+    }
+  }
 }
 
-void RTAA::AStar(Map& graph, const node_t& goal) {
-	int expands = LookAhead;
-	while (expands-- > 0) {
-		//If nothing left to expand, set error flag and return.
-		if (m_open.empty()) {
-			m_next = FAIL_NODE;
-			return;
-		}
-
-		node_t top = m_open.top();
-		m_open.pop();
-
-		if (isGoalNode(top)) {
-			m_next = top;
-			return;
-		}
-
-		m_closed.insert(top);
-		const char* neighborDirs = (graph.getType() == OCTILE) ? VALID_OCTILE_DIRECTIONS : VALID_QUARTILE_DIRECTIONS;
-		for (int i = 0; i < graph.numNeighbors(); ++i) {
-			node_t neighbor = graph.getNeighbor(top.first, top.second, neighborDirs[i]);
-			if (neighbor == FAIL_NODE) continue;
-			if (m_closed.find(neighbor) != m_closed.end()) continue;
-			float tentativeScore = m_gValues[top.first][top.second] + graph.getCost(top.first, top.second, neighborDirs[i]);
-			if (find(m_open.begin(), m_open.end(), neighbor) == m_open.end()  || tentativeScore < m_gValues[top.first][top.second])
-			{
-				m_directions[neighbor.first][neighbor.second] = getOppositeDir(neighborDirs[i]);
-				m_gValues[neighbor.first][neighbor.second] = tentativeScore;
-                if(find(m_open.begin(), m_open.end(), neighbor) != m_open.end())
-                {
-                    m_open.push(neighbor);
-                }
-			}
-
-		}
-	}
+std::list<node_t> RTAA::getResult(const node_t &goal) {
+  list<node_t> path;
+  node_t next = m_end;
+  path.push_back(next);
+  while (next != m_start) {
+    next = m_graph->getNeighbor(next.first, next.second,
+                                m_directions[next.first][next.second]);
+    path.push_front(next);
+  }
+  return path;
 }
 
-std::list<node_t> RTAA::getResult(const node_t& goal)
-{
-	list<node_t> path;
-	node_t next = m_end;
-	path.push_back(next);
-	while (next != m_start) {
-		next = m_graph->getNeighbor(next.first, next.second, m_directions[next.first][next.second]);
-		path.push_front(next);
-	}
-	return path;
+dir_t RTAA::findBestNeighbor(Map& graph, const node_t& node) {
+    dir_t bestDir = 0;
+    float lowestCost = FLT_MAX;
+    const char *neighborDirs = (graph.getType() == OCTILE)
+                                   ? VALID_OCTILE_DIRECTIONS
+                                   : VALID_QUARTILE_DIRECTIONS;
+    for(int i =0; i < graph.numNeighbors(); ++i) {
+        node_t neighbor = graph.getNeighbor(node.first, node.second, neighborDirs[i]);
+        if(neighbor == FAIL_NODE) continue;
+        dir_t nDir = m_directions[neighbor.first][neighbor.second];
+        if(nDir != getOppositeDir(neighborDirs[i])) continue;
+        float fValue = getGuess(neighbor);
+        if(fValue < lowestCost) {
+            lowestCost = fValue;
+            bestDir = neighborDirs[i];
+        }
+    }
+    return bestDir;
 }
 
-list<node_t> RTAA::search(Map& graph, float(*heuristic)(node_t, node_t), const node_t& goal) {
-	/*
+list<node_t> RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
+  /*
 procedure realtime adaptive astar():
 {01} while (scurr 6∈ GOAL) do
 {02} lookahead := any desired integer greater than zero;
@@ -176,28 +214,39 @@ procedure realtime adaptive astar():
 {07}	 h[s] := g[s¯] + h[s¯] − g[s];
 {08} movements := any desired integer greater than zero;
 {09} while (scurr 6= s¯ AND movements > 0) do
-{10}	a := the action in A(scurr) on the cost-minimal trajectory from scurr to s¯;
+{10}	a := the action in A(scurr) on the cost-minimal trajectory from
+scurr to s¯;
 {11}	scurr := succ(scurr, a);
 {12}	movements := movements − 1;
 {13}	for any desired number of times (including zero) do
 {14}		increase any desired c[s, a] where s ∈ S and a ∈ A(s);
-{15}	if any increased c[s, a] is on the cost-minimal trajectory from scurr to s¯ then
+{15}	if any increased c[s, a] is on the cost-minimal trajectory from
+scurr to s¯ then
 {16}		break;
 {17} return SUCCESS;
 */
 
-	while (!isGoalNode(m_current)) {
-		AStar(graph, goal);
-		if (m_next == FAIL_NODE) return list<node_t>();
-		for (auto it = m_closed.begin(); it != m_closed.end(); it++) {
-			m_hValues[it->first][it->second] = m_gValues[m_current.first][m_current.second] + m_hValues[m_current.first][m_current.second] - m_gValues[it->first][it->second];
-		}
-		int movements = MoveMax;
-		while (m_current != m_next && movements > 0) {
-            m_current = graph.getNeighbor(m_current.first, m_current.second, m_directions[m_current.first][m_current.second]);
-			movements--;
-		}
-	}
+  while (!isGoalNode(m_current)) {
+    AStar(graph);
+    if (m_next == FAIL_NODE) return list<node_t>();
+    for (auto it = m_closed.begin(); it != m_closed.end(); it++) {
+      m_hValues[it->first][it->second] =
+          m_gValues[m_current.first][m_current.second] +
+          m_hValues[m_current.first][m_current.second] -
+          m_gValues[it->first][it->second];
+        
+    }
+      m_open.refresh();
+    int movements = MoveMax;
+    while (m_current != m_next && movements > 0) {
+        node_t next =
+          graph.getNeighbor(m_current.first, m_current.second,
+                            findBestNeighbor(graph, m_current));
+        assert(next != FAIL_NODE);
+        m_current = next;
+      movements--;
+    }
+  }
 
-	return getResult(m_end);
+  return getResult(m_end);
 }

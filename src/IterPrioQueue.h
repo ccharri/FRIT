@@ -8,24 +8,24 @@
 #include <iterator>
 #include <queue>
 
-template<class T, class Compare>
+template <class T, class Compare>
 class IterPrioQueue : public std::vector<T> {
-    Compare comp;
-public:
-    IterPrioQueue(Compare cmp = Compare()) : comp(cmp) {
-        make_heap(this->begin(),this->end(), comp);
-    }
-    const T& top() { return this->front(); }
-    void push(const T& x) {
-        this->push_back(x);
-        push_heap(this->begin(),this->end(), comp);
-    }
-    void pop() {
-        pop_heap(this->begin(),this->end(), comp);
-        this->pop_back();
-    }
-};
+  Compare comp;
 
+ public:
+  IterPrioQueue(Compare cmp = Compare()) : comp(cmp) { refresh(); }
+  const T& top() { return this->front(); }
+  void push(const T& x) {
+    this->push_back(x);
+    push_heap(this->begin(), this->end(), comp);
+  }
+  void pop() {
+    pop_heap(this->begin(), this->end(), comp);
+    this->pop_back();
+  }
+
+  void refresh() { make_heap(this->begin(), this->end(), comp); }
+};
 
 /*
  Taken from

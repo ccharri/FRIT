@@ -7,47 +7,41 @@
 #include "Directions.h"
 #include "Parameters.h"
 
-typedef enum
-{
-	UNKNOWN,
-	QUARTILE,
-	OCTILE
-} MapType;
+typedef enum { UNKNOWN, QUARTILE, OCTILE } MapType;
 
 class Map {
-public:
-	Map(std::istream& stream);
-	Map(int width, int height);
-	virtual ~Map();
+ public:
+  Map(std::istream& stream);
+  Map(int width, int height);
+  virtual ~Map();
 
+  void readFromStream(std::istream& stream);
+  void printToStream(std::ostream& stream) const;
 
-	void readFromStream(std::istream& stream);
-	void printToStream(std::ostream& stream) const;
+  inline int getWidth() const { return m_width; }
+  inline int getHeight() const { return m_height; }
+  inline MapType getType() const { return m_type; }
+  int numNeighbors() const;
+  node_t getNeighbor(int x, int y, char dir) const;
+  float getCost(int x, int y, char dir) const;
 
-	inline int getWidth() const {return m_width;}
-	inline int getHeight() const {return m_height;}
-	inline MapType getType() const { return m_type; }
-	int numNeighbors() const;
-    node_t getNeighbor(int x, int y, char dir) const;
-	float getCost(int x, int y, char dir) const;
+  bool isPathable(char n) const;
+  bool isConnected(int x, int y, int nx, int ny) const;
 
-	bool isPathable(char n) const;
-    bool isConnected(int x, int y, int nx, int ny) const;
+  char getNodeType(int x, int y) const;
+  void setNodeType(int x, int y, char n);
 
-	char getNodeType(int x, int y) const;
-	void setNodeType(int x, int y, char n);
+  node_t getNode(int x, int y) const;
 
-    node_t getNode(int x, int y) const;
+ private:
+  void generateArray();
+  void deleteArray();
+  bool isValidNode(char n) const;
 
-private:
-	void generateArray();
-	void deleteArray();
-	bool isValidNode(char n) const;
-
-	char** m_map;
-	int m_width;
-	int m_height;
-	MapType m_type;
+  char** m_map;
+  int m_width;
+  int m_height;
+  MapType m_type;
 };
 
 #endif

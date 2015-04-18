@@ -4,7 +4,7 @@
 *
 * Created by Renee Jansen on 5/2/2006
 * 
-* File from http://www.movingai.com/benchmarks/formats.html.
+* File from http://www.movingai.com/benchmarks/formats.html .
 *
 */
 
@@ -20,7 +20,7 @@ using std::ofstream;
 */
 ScenarioLoader::ScenarioLoader(const char* fname)
 {
-	strncpy_s(scenName, fname, 1024);
+	strncpy(scenName, fname, 1024);
 	ifstream sfile(fname, std::ios::in);
 
 	float ver;
