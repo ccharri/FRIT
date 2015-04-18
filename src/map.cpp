@@ -13,7 +13,9 @@ using std::istream;
 using std::ostream;
 using std::endl;
 
-Map::Map(istream& stream) { readFromStream(stream); }
+Map::Map(istream& stream) : m_map(0), m_width(0), m_height(0), m_type(UNKNOWN) {
+  readFromStream(stream);
+}
 
 Map::Map(int width, int height)
     : m_map(0), m_width(width), m_height(height), m_type(UNKNOWN) {
@@ -167,6 +169,7 @@ bool Map::isPathable(char n) const {
     case '.':
     case 'G':
     case 'S':
+    case 'W':
       return true;
     default:
       return false;
@@ -185,13 +188,22 @@ bool Map::isConnected(int x, int y, int nx, int ny) const {
       if (x == nx && y == ny) return false;
       if (!(isPathable(getNodeType(x, y)) && isPathable(getNodeType(nx, ny))))
         return false;
+      if (getNodeType(x, y) == 'W' || getNodeType(nx, ny) == 'W')
+        if (getNodeType(nx, ny) != 'W' || getNodeType(x, y) != 'W')
+                  return false;
       if ((abs(xdif) == 1) && (abs(ydif) == 1))  // If a corner
       {
         // Only allow connections to corners if both neighboring middle nodes
         // are.
         // Otherwise, the diagonal is cut off and so not diagonally connected.
-        return isPathable(getNodeType(nx, y)) && isPathable(getNodeType(x, ny));
-        // return true;
+        if (!(isPathable(getNodeType(nx, y)) && isPathable(getNodeType(x, ny))))
+          return false;
+        if (getNodeType(x, y) == 'W') {
+          if (!(getNodeType(nx, y) == 'W' && getNodeType(x, ny) == 'W'))
+            return false;
+        } else if (getNodeType(nx, y) == 'W' || getNodeType(x, ny) == 'W')
+          return false;
+        return true;
       } else
         return (y == ny && abs(xdif) == 1) || (x == nx && abs(ydif) == 1);
     case QUARTILE:

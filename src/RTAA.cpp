@@ -82,6 +82,8 @@ RTAA::~RTAA() {
 }
 
 void RTAA::setStart(node_t start) {
+    assert(m_graph->isPathable(m_graph->getNodeType(start.first, start.second)));
+    
   // Set current location
   m_start = m_current = start;
 
@@ -89,21 +91,23 @@ void RTAA::setStart(node_t start) {
   while (!m_open.empty()) m_open.pop();
   m_closed.clear();
   m_next = FAIL_NODE;
-
+    
   // Initialize variables
+    for (int x = 0; x < m_graph->getWidth(); ++x) {
+        for (int y = 0; y < m_graph->getHeight(); ++y) {
+            m_gValues[x][y] = FLT_MAX;
+            m_hValues[x][y] = FLT_MAX;
+            m_directions[x][y] = 0;
+        }
+    }
+    m_gValues[m_start.first][m_start.second] = 0;
+    
   m_open.push(start);
 
-  for (int x = 0; x < m_graph->getWidth(); ++x) {
-    for (int y = 0; y < m_graph->getHeight(); ++y) {
-      m_gValues[x][y] = FLT_MAX;
-      m_hValues[x][y] = FLT_MAX;
-      m_directions[x][y] = 0;
-    }
-  }
-    m_gValues[m_start.first][m_start.second] = 0;
 }
 
 void RTAA::setEnd(node_t end) {
+    assert(m_graph->isPathable(m_graph->getNodeType(end.first, end.second)));
   m_end = end;
 
   for (int x = 0; x < m_graph->getWidth(); ++x) {
@@ -131,6 +135,11 @@ void RTAA::AStar(Map &graph) {
     node_t top = m_open.top();
     m_open.pop();
     m_next = m_open.empty() ? FAIL_NODE : m_open.top();
+      
+      if(m_hValues[top.first][top.second] < 2.) {
+          int something = 0;
+          something = 1;
+      }
 
     if (isGoalNode(top)) {
       m_next = top;
@@ -167,7 +176,7 @@ void RTAA::AStar(Map &graph) {
 
 std::list<node_t> RTAA::getResult(const node_t &goal) {
   list<node_t> path;
-  node_t next = m_end;
+  node_t next = goal;
   path.push_back(next);
   while (next != m_start) {
     next = m_graph->getNeighbor(next.first, next.second,
