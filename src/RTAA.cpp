@@ -129,11 +129,6 @@ void RTAA::AStar(Map &graph) {
     }
 
     node_t top = m_open.top();
-      float fValue = getGuess(top);
-      if(m_hValues[top.first][top.second] < 5.) {
-          int i = 0;
-      }
-      
     m_open.pop();
     m_next = m_open.empty() ? FAIL_NODE : m_open.top();
 
@@ -231,20 +226,27 @@ scurr to s¯ then
     if (m_next == FAIL_NODE) return list<node_t>();
     for (auto it = m_closed.begin(); it != m_closed.end(); it++) {
       m_hValues[it->first][it->second] =
-          m_gValues[m_current.first][m_current.second] +
-          m_hValues[m_current.first][m_current.second] -
+          m_gValues[m_next.first][m_next.second] +
+          m_hValues[m_next.first][m_next.second] -
           m_gValues[it->first][it->second];
         
     }
       m_open.refresh();
     int movements = MoveMax;
+//      for(int y = 0; y < graph.getHeight(); ++y) {
+//          for(int x = 0; x < graph.getWidth(); ++x) {
+//              dir_t dir = m_directions[x][y];
+//              std::cout << dir ? dir : ' ';
+//          }
+//          std::cout << std::endl;
+//      }
+      list<node_t> path = getResult(m_next);
     while (m_current != m_next && movements > 0) {
-        node_t next =
-          graph.getNeighbor(m_current.first, m_current.second,
-                            findBestNeighbor(graph, m_current));
-        assert(next != FAIL_NODE);
-        m_current = next;
-      movements--;
+        if(m_current != path.front()) {
+            m_current = path.front();
+            movements--;
+        }
+        path.pop_front();
     }
   }
 
