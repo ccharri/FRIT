@@ -190,7 +190,7 @@ bool Map::isConnected(int x, int y, int nx, int ny) const {
         return false;
       if (getNodeType(x, y) == 'W' || getNodeType(nx, ny) == 'W')
         if (getNodeType(nx, ny) != 'W' || getNodeType(x, y) != 'W')
-                  return false;
+          return false;
       if ((abs(xdif) == 1) && (abs(ydif) == 1))  // If a corner
       {
         // Only allow connections to corners if both neighboring middle nodes
@@ -204,8 +204,8 @@ bool Map::isConnected(int x, int y, int nx, int ny) const {
         } else if (getNodeType(nx, y) == 'W' || getNodeType(x, ny) == 'W')
           return false;
         return true;
-      } else
-        return (y == ny && abs(xdif) == 1) || (x == nx && abs(ydif) == 1);
+      }
+      return (y == ny && abs(xdif) == 1) || (x == nx && abs(ydif) == 1);
     case QUARTILE:
       xdif = x - nx;
       ydif = y - ny;

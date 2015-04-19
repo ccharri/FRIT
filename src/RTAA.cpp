@@ -82,7 +82,7 @@ RTAA::~RTAA() {
 }
 
 void RTAA::setStart(node_t start) {
-    assert(m_graph->isPathable(m_graph->getNodeType(start.first, start.second)));
+//    assert(m_graph->isPathable(m_graph->getNodeType(start.first, start.second)));
     
   // Set current location
   m_start = m_current = start;
@@ -107,7 +107,7 @@ void RTAA::setStart(node_t start) {
 }
 
 void RTAA::setEnd(node_t end) {
-    assert(m_graph->isPathable(m_graph->getNodeType(end.first, end.second)));
+//    assert(m_graph->isPathable(m_graph->getNodeType(end.first, end.second)));
   m_end = end;
 
   for (int x = 0; x < m_graph->getWidth(); ++x) {
@@ -161,12 +161,14 @@ void RTAA::AStar(Map &graph) {
       float tentativeScore =
           m_gValues[top.first][top.second] +
           graph.getCost(top.first, top.second, neighborDirs[i]);
-      if (find(m_open.begin(), m_open.end(), neighbor) == m_open.end() ||
-          tentativeScore < m_gValues[neighbor.first][neighbor.second]) {
+        bool inOpenSet;
+      if (!(inOpenSet = find(m_open.begin(), m_open.end(), neighbor) != m_open.end()) ||
+          tentativeScore < m_gValues[neighbor.first][neighbor.second]
+          ) {
         m_directions[neighbor.first][neighbor.second] =
             getOppositeDir(neighborDirs[i]);
         m_gValues[neighbor.first][neighbor.second] = tentativeScore;
-        if (find(m_open.begin(), m_open.end(), neighbor) == m_open.end()) {
+        if (!inOpenSet) {
           m_open.push(neighbor);
         }
       }
