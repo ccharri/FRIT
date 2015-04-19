@@ -18,7 +18,8 @@ RTAA::RTAA(Map &graph, float (*heuristic)(node_t, node_t))
       m_end(FAIL_NODE),
       m_start(FAIL_NODE),
       m_graph(&graph),
-      m_open(IterPrioQueue<node_t, NodeComparison>(NodeComparison(this, false))) {
+      m_open(
+          IterPrioQueue<node_t, NodeComparison>(NodeComparison(this, false))) {
   assert(graph.getType() != UNKNOWN);
 
   m_gValues = new float *[graph.getWidth()];
@@ -82,8 +83,9 @@ RTAA::~RTAA() {
 }
 
 void RTAA::setStart(node_t start) {
-//    assert(m_graph->isPathable(m_graph->getNodeType(start.first, start.second)));
-    
+  //    assert(m_graph->isPathable(m_graph->getNodeType(start.first,
+  //    start.second)));
+
   // Set current location
   m_start = m_current = start;
 
@@ -91,34 +93,35 @@ void RTAA::setStart(node_t start) {
   while (!m_open.empty()) m_open.pop();
   m_closed.clear();
   m_next = FAIL_NODE;
-    
-  // Initialize variables
-    for (int x = 0; x < m_graph->getWidth(); ++x) {
-        for (int y = 0; y < m_graph->getHeight(); ++y) {
-            m_gValues[x][y] = FLT_MAX;
-            m_hValues[x][y] = FLT_MAX;
-            m_directions[x][y] = 0;
-        }
-    }
-    m_gValues[m_start.first][m_start.second] = 0;
-    
-  m_open.push(start);
 
+  // Initialize variables
+  for (int x = 0; x < m_graph->getWidth(); ++x) {
+    for (int y = 0; y < m_graph->getHeight(); ++y) {
+      m_gValues[x][y] = FLT_MAX;
+      m_hValues[x][y] = m_heuristic(node_t(x,y), m_end);
+      m_directions[x][y] = 0;
+    }
+  }
+  m_gValues[m_start.first][m_start.second] = 0;
+
+  m_open.push(start);
 }
 
 void RTAA::setEnd(node_t end) {
-//    assert(m_graph->isPathable(m_graph->getNodeType(end.first, end.second)));
+  //    assert(m_graph->isPathable(m_graph->getNodeType(end.first,
+  //    end.second)));
   m_end = end;
 
   for (int x = 0; x < m_graph->getWidth(); ++x) {
     for (int y = 0; y < m_graph->getHeight(); ++y) {
       m_gValues[x][y] = FLT_MAX;
       m_hValues[x][y] = m_heuristic(node_t(x, y), m_end);
-        m_directions[x][y] = 0;
+      m_directions[x][y] = 0;
     }
   }
-    
-    m_gValues[m_start.first][m_start.second] = 0;
+
+  m_gValues[m_start.first][m_start.second] = 0;
+    m_path.clear();
 }
 
 bool RTAA::isGoalNode(const node_t &node) { return node == m_end; }
@@ -135,11 +138,6 @@ void RTAA::AStar(Map &graph) {
     node_t top = m_open.top();
     m_open.pop();
     m_next = m_open.empty() ? FAIL_NODE : m_open.top();
-      
-      if(m_hValues[top.first][top.second] < 2.) {
-          int something = 0;
-          something = 1;
-      }
 
     if (isGoalNode(top)) {
       m_next = top;
@@ -147,9 +145,7 @@ void RTAA::AStar(Map &graph) {
     }
 
     m_closed.insert(top);
-    const char *neighborDirs = (graph.getType() == OCTILE)
-                                   ? VALID_OCTILE_DIRECTIONS
-                                   : VALID_QUARTILE_DIRECTIONS;
+      const char *neighborDirs = graph.getNeighborDirs();
     for (int i = 0; i < graph.numNeighbors(); ++i) {
       node_t neighbor =
           graph.getNeighbor(top.first, top.second, neighborDirs[i]);
@@ -162,15 +158,17 @@ void RTAA::AStar(Map &graph) {
       float tentativeScore =
           m_gValues[top.first][top.second] +
           graph.getCost(top.first, top.second, neighborDirs[i]);
-        bool inOpenSet;
-      if (!(inOpenSet = find(m_open.begin(), m_open.end(), neighbor) != m_open.end()) ||
-          tentativeScore < m_gValues[neighbor.first][neighbor.second]
-          ) {
+      bool inOpenSet;
+      if (!(inOpenSet =
+                find(m_open.begin(), m_open.end(), neighbor) != m_open.end()) ||
+          tentativeScore < m_gValues[neighbor.first][neighbor.second]) {
         m_directions[neighbor.first][neighbor.second] =
             getOppositeDir(neighborDirs[i]);
         m_gValues[neighbor.first][neighbor.second] = tentativeScore;
         if (!inOpenSet) {
           m_open.push(neighbor);
+        } else {
+          m_open.refresh();
         }
       }
     }
@@ -189,24 +187,25 @@ std::list<node_t> RTAA::getResult(const node_t &goal) {
   return path;
 }
 
-dir_t RTAA::findBestNeighbor(Map& graph, const node_t& node) {
-    dir_t bestDir = 0;
-    float lowestCost = FLT_MAX;
-    const char *neighborDirs = (graph.getType() == OCTILE)
-                                   ? VALID_OCTILE_DIRECTIONS
-                                   : VALID_QUARTILE_DIRECTIONS;
-    for(int i =0; i < graph.numNeighbors(); ++i) {
-        node_t neighbor = graph.getNeighbor(node.first, node.second, neighborDirs[i]);
-        if(neighbor == FAIL_NODE) continue;
-        dir_t nDir = m_directions[neighbor.first][neighbor.second];
-        if(nDir != getOppositeDir(neighborDirs[i])) continue;
-        float fValue = getGuess(neighbor);
-        if(fValue < lowestCost) {
-            lowestCost = fValue;
-            bestDir = neighborDirs[i];
-        }
+dir_t RTAA::findBestNeighbor(Map &graph, const node_t &node) {
+  dir_t bestDir = 0;
+  float lowestCost = FLT_MAX;
+  const char *neighborDirs = (graph.getType() == OCTILE)
+                                 ? VALID_OCTILE_DIRECTIONS
+                                 : VALID_QUARTILE_DIRECTIONS;
+  for (int i = 0; i < graph.numNeighbors(); ++i) {
+    node_t neighbor =
+        graph.getNeighbor(node.first, node.second, neighborDirs[i]);
+    if (neighbor == FAIL_NODE) continue;
+    dir_t nDir = m_directions[neighbor.first][neighbor.second];
+    if (nDir != getOppositeDir(neighborDirs[i])) continue;
+    float fValue = getGuess(neighbor);
+    if (fValue < lowestCost) {
+      lowestCost = fValue;
+      bestDir = neighborDirs[i];
     }
-    return bestDir;
+  }
+  return bestDir;
 }
 
 list<node_t> RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
@@ -241,26 +240,44 @@ scurr to s¯ then
           m_gValues[m_next.first][m_next.second] +
           m_hValues[m_next.first][m_next.second] -
           m_gValues[it->first][it->second];
-        
     }
-      m_open.refresh();
+    m_open.refresh();
     int movements = MoveMax;
-//      for(int y = 0; y < graph.getHeight(); ++y) {
-//          for(int x = 0; x < graph.getWidth(); ++x) {
-//              dir_t dir = m_directions[x][y];
-//              std::cout << dir ? dir : ' ';
-//          }
-//          std::cout << std::endl;
-//      }
-      list<node_t> path = getResult(m_next);
+    //      for(int y = 0; y < graph.getHeight(); ++y) {
+    //          for(int x = 0; x < graph.getWidth(); ++x) {
+    //              dir_t dir = m_directions[x][y];
+    //              std::cout << dir ? dir : ' ';
+    //          }
+    //          std::cout << std::endl;
+    //      }
+    list<node_t> path = getResult(m_next);
     while (m_current != m_next && movements > 0) {
-        if(m_current != path.front()) {
-            m_current = path.front();
-            movements--;
-        }
-        path.pop_front();
+      if (m_current != path.front()) {
+        moveTo(path.front());
+        movements--;
+      }
+      path.pop_front();
     }
   }
 
-  return getResult(m_end);
+  return getPath();
+}
+
+float RTAA::getCost() const {
+    float total = 0;
+    auto path = getPath();
+    auto it = path.begin();
+    if (it == path.end()) return total;
+    node_t first = *it;
+    while (it++ != path.end()) {
+        node_t next = *it;
+        if ((first.first == next.first && first.second != next.second) ||
+            (first.first != next.first && first.second == next.second)) {
+            total += BorderingCost;
+        } else {
+            total += CornerCost;
+        }
+        first = next;
+    }
+    return total;
 }

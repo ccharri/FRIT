@@ -19,10 +19,17 @@ class RTAA : public RealTimeAlgorithm {
 
   virtual void setStart(node_t start) override;
   virtual void setEnd(node_t end) override;
-
+    
+    virtual std::list<node_t> getPath() const {return m_path;}
+    virtual float getCost() const;
+    
   virtual float getGoalValue(const node_t node) const {
     return m_gValues[node.first][node.second];
   }
+    
+    virtual float getHeuristicValue(const node_t node) const {
+        return m_hValues[node.first][node.second];
+    }
 
   virtual float getGuess(const node_t node) const {
     return m_gValues[node.first][node.second] +
@@ -37,11 +44,16 @@ class RTAA : public RealTimeAlgorithm {
   inline Map& getMap() { return *m_graph; }
   inline node_t getGoal() { return m_end; }
   virtual dir_t findBestNeighbor(Map& map, const node_t& node);
+    virtual void moveTo(node_t& node) { m_current = node; m_path.push_back(node); }
+  virtual node_t getLoc() { return m_current; }
+  virtual node_t getNext() { return m_next; }
 
  private:
   void AStar(Map& graph);
   std::list<node_t> getResult(const node_t& goal);
 
+    std::list<node_t> m_path;
+    
   float** m_gValues;
   float** m_hValues;
   char** m_directions;

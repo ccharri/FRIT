@@ -136,6 +136,12 @@ node_t Map::getNeighbor(int x, int y, char dir) const {
   }
 }
 
+dir_t const* Map::getNeighborDirs() const {
+    return (getType() == OCTILE)
+    ? VALID_OCTILE_DIRECTIONS
+    : VALID_QUARTILE_DIRECTIONS;
+}
+
 float Map::getCost(int x, int y, char dir) const {
   switch (dir) {
     case VALUE(OCTILE_DIRECTION, NORTH):

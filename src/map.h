@@ -23,6 +23,7 @@ class Map {
   inline MapType getType() const { return m_type; }
   int numNeighbors() const;
   virtual node_t getNeighbor(int x, int y, char dir) const;
+    virtual dir_t const * getNeighborDirs() const;
   virtual float getCost(int x, int y, char dir) const;
 
   virtual bool isPathable(char n) const;
