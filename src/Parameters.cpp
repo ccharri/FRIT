@@ -11,7 +11,7 @@
 #include <math.h>
 
 const int LookAhead = 1000000;
-const int MoveMax = 1000000;
+const int MoveMax = 1;
 
 const float BorderingCost = 1;
 const float CornerCost = sqrtf(2.);

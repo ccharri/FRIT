@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
   for (int i = 0; i < files.size(); ++i) {
     std::fstream file(files[i].first);
-    Map test(file);
+    Freespace_Map test(file);
     RTAA rta(test, octileHeuristic);
     ScenarioLoader loader(files[i].second.c_str());
     int numOptimal = 0;
@@ -53,9 +53,9 @@ int main(int argc, char** argv) {
       rta.setStart(node_t(e.GetStartX(), e.GetStartY()));
       rta.setEnd(node_t(e.GetGoalX(), e.GetGoalY()));
       std::list<node_t> result = rta.search(test, octileHeuristic);
-      //result = rta.getPath();
+      result = rta.getPath();
       float goal = rta.getGoalValue(node_t(e.GetGoalX(), e.GetGoalY()));
-      //goal = rta.getCost();
+      goal = rta.getCost();
       bool optimal = (fabs(goal - e.GetDistance()) < .1);
       if (optimal) ++numOptimal;
       allOptimal = allOptimal && optimal;

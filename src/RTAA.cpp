@@ -140,6 +140,8 @@ void RTAA::AStar(Map &graph) {
       m_next = FAIL_NODE;
       return;
     }
+      
+    if(isGoalNode(m_next)) return;
 
     node_t top = m_open.top();
     m_open.pop();
