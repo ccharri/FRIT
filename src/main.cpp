@@ -56,9 +56,10 @@ int main(int argc, char** argv) {
       Experiment e = loader.GetNthExperiment(i);
       rta.setStart(node_t(e.GetStartX(), e.GetStartY()));
       rta.setEnd(node_t(e.GetGoalX(), e.GetGoalY()));
-      rta.search(test, euclideanHeuristic);
-        std::list<node_t> result = rta.getPath();
-        float goal = rta.getCost();
+      std::list<node_t> result = rta.search(test, euclideanHeuristic);
+      result = rta.getPath();
+      float goal = rta.getGoalValue(node_t(e.GetGoalX(), e.GetGoalY()));
+      goal = rta.getCost();
       bool optimal = (fabs(goal - e.GetDistance()) < .1);
       if (optimal) ++numOptimal;
       allOptimal = allOptimal && optimal;

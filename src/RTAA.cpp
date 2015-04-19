@@ -88,11 +88,16 @@ void RTAA::setStart(node_t start) {
 
   // Set current location
   m_start = m_current = start;
+    
+    m_path.clear();
+    m_path.push_back(start);
 
   // Clear current state.
   while (!m_open.empty()) m_open.pop();
   m_closed.clear();
   m_next = FAIL_NODE;
+    
+    
 
   // Initialize variables
   for (int x = 0; x < m_graph->getWidth(); ++x) {
@@ -122,6 +127,7 @@ void RTAA::setEnd(node_t end) {
 
   m_gValues[m_start.first][m_start.second] = 0;
     m_path.clear();
+    m_path.push_back(m_start);
 }
 
 bool RTAA::isGoalNode(const node_t &node) { return node == m_end; }
@@ -260,7 +266,7 @@ scurr to s¯ then
     }
   }
 
-  return getPath();
+  return getResult(m_end);
 }
 
 float RTAA::getCost() const {
@@ -269,12 +275,16 @@ float RTAA::getCost() const {
     auto it = path.begin();
     if (it == path.end()) return total;
     node_t first = *it;
-    while (it++ != path.end()) {
+    for(int i = 0; i < path.size(); ++i, it++) {
         node_t next = *it;
         if ((first.first == next.first && first.second != next.second) ||
             (first.first != next.first && first.second == next.second)) {
             total += BorderingCost;
-        } else {
+        }
+            else if (first.first == next.first && first.second == next.second) {
+                total += 0;
+            }
+        else {
             total += CornerCost;
         }
         first = next;
