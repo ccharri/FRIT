@@ -154,6 +154,7 @@ void RTAA::AStar(Map &graph) {
       node_t neighbor =
           graph.getNeighbor(top.first, top.second, neighborDirs[i]);
       if (neighbor == FAIL_NODE) continue;
+      graph.observe(neighbor.first, neighbor.second);
       if (!graph.isConnected(top.first, top.second, neighbor.first,
                              neighbor.second))
         continue;

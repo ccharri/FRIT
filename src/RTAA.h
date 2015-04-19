@@ -23,10 +23,11 @@ class RTAA : public RealTimeAlgorithm {
   virtual float getGoalValue(const node_t node) const {
     return m_gValues[node.first][node.second];
   }
-    
-    virtual float getGuess(const node_t node) const {
-        return m_gValues[node.first][node.second] + m_hValues[node.first][node.second];
-    }
+
+  virtual float getGuess(const node_t node) const {
+    return m_gValues[node.first][node.second] +
+           m_hValues[node.first][node.second];
+  }
 
   virtual std::list<node_t> search(Map& graph,
                                    float (*heuristic)(node_t, node_t)) override;
@@ -59,12 +60,17 @@ class RTAA : public RealTimeAlgorithm {
         : m_rta(rta), m_reverse(reverse) {}
 
     bool operator()(const node_t& lhs, const node_t& rhs) const {
-      if (m_reverse)
-        return m_rta->getGuess(lhs) <
-               m_rta->getGuess(rhs);
-      else
-        return m_rta->getGuess(lhs) >
-               m_rta->getGuess(rhs);
+      float flhs = m_rta->getGuess(lhs);
+      float frhs = m_rta->getGuess(rhs);
+      if (m_reverse) {
+        if (flhs == frhs)
+          return m_rta->getGoalValue(lhs) < m_rta->getGoalValue(rhs);
+        return flhs < frhs;
+      } else {
+        if (flhs == frhs)
+          return m_rta->getGoalValue(lhs) > m_rta->getGoalValue(rhs);
+        return flhs > frhs;
+      }
     }
 
    private:

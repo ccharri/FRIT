@@ -22,16 +22,18 @@ class Map {
   inline int getHeight() const { return m_height; }
   inline MapType getType() const { return m_type; }
   int numNeighbors() const;
-  node_t getNeighbor(int x, int y, char dir) const;
-  float getCost(int x, int y, char dir) const;
+  virtual node_t getNeighbor(int x, int y, char dir) const;
+  virtual float getCost(int x, int y, char dir) const;
 
-  bool isPathable(char n) const;
-  bool isConnected(int x, int y, int nx, int ny) const;
+  virtual bool isPathable(char n) const;
+  virtual bool isConnected(int x, int y, int nx, int ny) const;
 
   char getNodeType(int x, int y) const;
   void setNodeType(int x, int y, char n);
 
   node_t getNode(int x, int y) const;
+    
+  virtual void observe(int x, int y) {};
 
  private:
   void generateArray();
