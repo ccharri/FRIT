@@ -185,9 +185,10 @@ std::list<node_t> RTAA::getResult(const node_t &goal) {
   list<node_t> path;
   node_t next = goal;
   path.push_back(next);
-  while (next != m_start) {
+  while (next != m_current) {
     next = m_graph->getNeighbor(next.first, next.second,
                                 m_directions[next.first][next.second]);
+      if(next == FAIL_NODE) return path;
     path.push_front(next);
   }
   return path;
