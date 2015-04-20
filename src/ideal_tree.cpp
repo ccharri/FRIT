@@ -94,6 +94,7 @@ void IT_RTAA::observeAround(const node_t &node) {
   dir_t const *nDirs = getMap().getNeighborDirs();
   for (int i = 0; i < getMap().numNeighbors(); ++i) {
     node_t n = getMap().getNeighbor(node.first, node.second, nDirs[i]);
+      if(n == FAIL_NODE) continue;
     getMap().observe(n.first, n.second);
   }
 }
@@ -118,6 +119,17 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
       if (i) RTAA::setStart(getLoc());
       list<node_t> result = RTAA::search(graph, heuristic);
       if (result.empty()) return result;
+        auto it = result.begin();
+        node_t first = *it;
+        for (int i = 0; i < result.size(); ++i, it++) {
+            node_t next = *it;
+            dir_t const * nDirs = getMap().getNeighborDirs();
+            for(int n = 0; n < getMap().numNeighbors(); ++n) {
+                node_t nn = graph.getNeighbor(first.first, first.second, nDirs[n]);
+                if(next == nn) m_idealDirs[first.first][first.second] = nDirs[n];
+            }
+            first = next;
+        }
     } else {
       node_t next =
           graph.getNeighbor(getLoc().first, getLoc().second,

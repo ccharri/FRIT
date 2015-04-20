@@ -10,6 +10,9 @@
 #define FRITRecreation_Heuristics_h
 
 #include <math.h>
+#include <cstdlib>
+
+#include "node.h"
 #include "Parameters.h"
 
 static float euclideanHeuristic(node_t a, node_t b) {

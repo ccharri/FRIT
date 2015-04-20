@@ -34,12 +34,12 @@ int main(int argc, char** argv) {
   for (int i = 0; i < files.size(); ++i) {
     std::fstream file(files[i].first);
     Freespace_Map test(file);
-    IT_RTAA rta(test, octileHeuristic);
+    RTAA rta(test, octileHeuristic);
     ScenarioLoader loader(files[i].second.c_str());
     int numOptimal = 0;
     bool allOptimal = true;
     for (int i = 0; i < loader.GetNumExperiments(); ++i) {
-      Experiment e = loader.GetNthExperiment(23);
+      Experiment e = loader.GetNthExperiment(i);
       rta.setStart(node_t(e.GetStartX(), e.GetStartY()));
       rta.setEnd(node_t(e.GetGoalX(), e.GetGoalY()));
       std::list<node_t> result = rta.search(test, octileHeuristic);
