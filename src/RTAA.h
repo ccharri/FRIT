@@ -47,7 +47,8 @@ class RTAA : public RealTimeAlgorithm {
   virtual dir_t findBestNeighbor(Map& map, const node_t& node);
     virtual void moveTo(node_t& node) { m_current = node; m_path.push_back(node); }
   virtual node_t getLoc() { return m_current; }
-  virtual node_t getNext() { return m_next; }
+    
+    virtual node_t getNext() const {return m_open.empty() ? FAIL_NODE : m_open.front();}
 
  private:
   void AStar(Map& graph);
@@ -60,7 +61,6 @@ class RTAA : public RealTimeAlgorithm {
   char** m_directions;
   Map* m_graph;
   node_t m_current;
-  node_t m_next;
   node_t m_end;
   node_t m_start;
   std::set<node_t> m_closed;

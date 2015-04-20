@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
 
   for (int i = 0; i < files.size(); ++i) {
     std::fstream file(files[i].first);
-    Freespace_Map test(file);
+    Map test(file);
     RTAA rta(test, octileHeuristic);
     ScenarioLoader loader(files[i].second.c_str());
     int numOptimal = 0;

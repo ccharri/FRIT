@@ -14,7 +14,6 @@ RTAA::RTAA(Map &graph, float (*heuristic)(node_t, node_t))
       m_gValues(0),
       m_hValues(0),
       m_current(FAIL_NODE),
-      m_next(FAIL_NODE),
       m_end(FAIL_NODE),
       m_start(FAIL_NODE),
       m_graph(&graph),
@@ -87,7 +86,7 @@ void RTAA::setStart(node_t start) {
   //    start.second)));
 
   // Set current location
-  m_start = m_current = m_next = start;
+  m_start = m_current = start;
 
   m_path.clear();
   m_path.push_back(start);
@@ -134,18 +133,17 @@ void RTAA::AStar(Map &graph) {
   while (expands-- > 0) {
     // If nothing left to expand, set error flag and return.
     if (m_open.empty()) {
-      m_next = FAIL_NODE;
+      m_current = FAIL_NODE;
       return;
     }
 
-//    if(m_next == FAIL_NODE) return;
-    if (isGoalNode(m_next)) return;
+    if(getNext() == FAIL_NODE) return;
+    if (isGoalNode(getNext())) return;
 
     node_t top = m_open.top();
     m_open.pop();
 
     if (isGoalNode(top)) {
-      m_next = top;
       return;
     }
 
@@ -241,17 +239,17 @@ scurr to s¯ then
 
   while (!isGoalNode(m_current)) {
     AStar(graph);
-    if (m_next == FAIL_NODE) return list<node_t>();
+    if (getNext() == FAIL_NODE || getLoc() == FAIL_NODE) return list<node_t>();
     for (auto it = m_closed.begin(); it != m_closed.end(); it++) {
       m_hValues[it->first][it->second] =
-          m_gValues[m_next.first][m_next.second] +
-          m_hValues[m_next.first][m_next.second] -
+          m_gValues[getNext().first][getNext().second] +
+          m_hValues[getNext().first][getNext().second] -
           m_gValues[it->first][it->second];
     }
     m_open.refresh();
     int movements = MoveMax;
-    list<node_t> path = getResult(m_next);
-    while (m_current != m_next && movements > 0) {
+    list<node_t> path = getResult(getNext());
+    while (m_current != getNext() && movements > 0) {
       if (m_current != path.front()) {
         moveTo(path.front());
         movements--;
