@@ -3,9 +3,12 @@
 
 #include <float.h>
 
+#include "IterPrioQueue.h"
 #include "Parameters.h"
+#include "Heuristics.h"
 
 using std::list;
+using std::priority_queue;
 
 IT_RTAA::IT_RTAA(Freespace_Map &graph, float (*heuristic)(node_t, node_t))
     : RTAA(graph, heuristic),
@@ -104,7 +107,7 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
       node_t n = graph.getNeighbor(getLoc().first, getLoc().second, nDirs[i]);
       if (!graph.isConnected(getLoc().first, getLoc().second, n.first,
                              n.second)) {
-        float h = heuristic(getLoc(), getGoal());
+        float h = getHeuristicValue(n);
         if (h < m_hObstacle) m_hObstacle = h;
         m_idealDirs[n.first][n.second] = 0;
         pruneAround(n);
@@ -126,9 +129,9 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
   return getPath();
 }
 
-
 void IT_RTAA::refresh() {
   getMap().clearObservations();
+  m_iPath.clear();
 
   for (int x = 0; x < getMap().getWidth(); ++x) {
     for (int y = 0; y < getMap().getHeight(); ++y) {
@@ -139,23 +142,49 @@ void IT_RTAA::refresh() {
   m_hObstacle = FLT_MAX;
   m_color = 0;
 
-  if (getGoal() == FAIL_NODE) return;
+  node_t goal = getGoal();
+  if (goal == FAIL_NODE) return;
 
-  list<node_t> openList;
-  openList.push_back(getGoal());
-  m_idealDirs[getGoal().first][getGoal().second] = 0;
-  while (!openList.empty()) {
-    node_t expand = openList.front();
-    openList.pop_front();
+  float **distances;
+
+  IterPrioQueue<node_t, NodeComparison> q((NodeComparison(distances)));
+
+  distances = new float *[getMap().getWidth()];
+  for (int x = 0; x < getMap().getWidth(); ++x) {
+    distances[x] = new float[getMap().getHeight()];
+    for (int y = 0; y < getMap().getHeight(); ++y) {
+      if (x == getGoal().first && y == getGoal().second)
+        distances[x][y] = 0;
+      else
+        distances[x][y] = FLT_MAX;
+    }
+  }
+
+  q.push(getGoal());
+
+  while (!q.empty()) {
+    node_t expand = q.front();
+    q.pop();
 
     dir_t const *nDir = getMap().getNeighborDirs();
     for (int i = 0; i < getMap().numNeighbors(); ++i) {
       node_t n = getMap().getNeighbor(expand.first, expand.second, nDir[i]);
-      if (n == FAIL_NODE || n == getGoal() || m_idealDirs[n.first][n.second] != 0) continue;
-      openList.push_back(n);
-      m_idealDirs[n.first][n.second] = getOppositeDir(nDir[i]);
+      if (n == FAIL_NODE) continue;
+      bool shouldPush = m_idealDirs[n.first][n.second] == 0;
+      float pos = distances[expand.first][expand.second] +
+                  getMap().getCost(expand.first, expand.second, nDir[i]);
+      if (pos < distances[n.first][n.second]) {
+        distances[n.first][n.second] = pos;
+        m_idealDirs[n.first][n.second] = getOppositeDir(nDir[i]);
+      }
+      if (shouldPush) q.push(n);
     }
   }
+
+  for (int i = 0; i < getMap().getWidth(); ++i) {
+    delete distances[i];
+  }
+  delete distances;
 }
 
 void IT_RTAA::pruneAround(const node_t &node) {

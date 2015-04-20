@@ -43,6 +43,7 @@ class RTAA : public RealTimeAlgorithm {
   virtual bool isGoalNode(const node_t& node);
   inline Map& getMap() { return *m_graph; }
   inline node_t getGoal() { return m_end; }
+    inline node_t getStart() { return m_start;}
   virtual dir_t findBestNeighbor(Map& map, const node_t& node);
     virtual void moveTo(node_t& node) { m_current = node; m_path.push_back(node); }
   virtual node_t getLoc() { return m_current; }

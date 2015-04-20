@@ -16,18 +16,8 @@
 #include "ideal_tree.h"
 #include "ScenarioLoader.h"
 #include "Parameters.h"
+#include "Heuristics.h"
 
-float euclideanHeuristic(node_t a, node_t b) {
-  int xdif = a.first - b.first;
-  int ydif = a.second - b.second;
-  return sqrtf(xdif * xdif + ydif * ydif);
-}
-
-float octileHeuristic(node_t a, node_t b) {
-  int fxdif = std::abs(a.first - b.first);
-    int fydif = std::abs(a.second - b.second);
-    return fmaxf(fxdif, fydif) + (CornerCost - BorderingCost)*fminf(fxdif, fydif);
-}
 
 int main(int argc, char** argv) {
     string dataPath = argv[1];
@@ -44,12 +34,12 @@ int main(int argc, char** argv) {
   for (int i = 0; i < files.size(); ++i) {
     std::fstream file(files[i].first);
     Freespace_Map test(file);
-    RTAA rta(test, octileHeuristic);
+    IT_RTAA rta(test, octileHeuristic);
     ScenarioLoader loader(files[i].second.c_str());
     int numOptimal = 0;
     bool allOptimal = true;
     for (int i = 0; i < loader.GetNumExperiments(); ++i) {
-      Experiment e = loader.GetNthExperiment(i);
+      Experiment e = loader.GetNthExperiment(23);
       rta.setStart(node_t(e.GetStartX(), e.GetStartY()));
       rta.setEnd(node_t(e.GetGoalX(), e.GetGoalY()));
       std::list<node_t> result = rta.search(test, octileHeuristic);

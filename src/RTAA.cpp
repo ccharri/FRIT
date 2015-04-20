@@ -87,23 +87,20 @@ void RTAA::setStart(node_t start) {
   //    start.second)));
 
   // Set current location
-  m_start = m_current = start;
-    
-    m_path.clear();
-    m_path.push_back(start);
+  m_start = m_current = m_next = start;
+
+  m_path.clear();
+  m_path.push_back(start);
 
   // Clear current state.
   while (!m_open.empty()) m_open.pop();
   m_closed.clear();
-  m_next = FAIL_NODE;
-    
-    
 
   // Initialize variables
   for (int x = 0; x < m_graph->getWidth(); ++x) {
     for (int y = 0; y < m_graph->getHeight(); ++y) {
       m_gValues[x][y] = FLT_MAX;
-      m_hValues[x][y] = m_heuristic(node_t(x,y), m_end);
+      m_hValues[x][y] = m_heuristic(node_t(x, y), m_end);
       m_directions[x][y] = 0;
     }
   }
@@ -126,8 +123,8 @@ void RTAA::setEnd(node_t end) {
   }
 
   m_gValues[m_start.first][m_start.second] = 0;
-    m_path.clear();
-    m_path.push_back(m_start);
+  m_path.clear();
+  m_path.push_back(m_start);
 }
 
 bool RTAA::isGoalNode(const node_t &node) { return node == m_end; }
@@ -140,12 +137,12 @@ void RTAA::AStar(Map &graph) {
       m_next = FAIL_NODE;
       return;
     }
-      
-    if(isGoalNode(m_next)) return;
+
+//    if(m_next == FAIL_NODE) return;
+    if (isGoalNode(m_next)) return;
 
     node_t top = m_open.top();
     m_open.pop();
-    m_next = m_open.empty() ? FAIL_NODE : m_open.top();
 
     if (isGoalNode(top)) {
       m_next = top;
@@ -153,7 +150,7 @@ void RTAA::AStar(Map &graph) {
     }
 
     m_closed.insert(top);
-      const char *neighborDirs = graph.getNeighborDirs();
+    const char *neighborDirs = graph.getNeighborDirs();
     for (int i = 0; i < graph.numNeighbors(); ++i) {
       node_t neighbor =
           graph.getNeighbor(top.first, top.second, neighborDirs[i]);
@@ -180,6 +177,7 @@ void RTAA::AStar(Map &graph) {
         }
       }
     }
+//    if (m_next == FAIL_NODE) m_next = m_open.empty() ? FAIL_NODE : m_open.top();
   }
 }
 
@@ -190,7 +188,7 @@ std::list<node_t> RTAA::getResult(const node_t &goal) {
   while (next != m_current) {
     next = m_graph->getNeighbor(next.first, next.second,
                                 m_directions[next.first][next.second]);
-      if(next == FAIL_NODE) return path;
+    if (next == FAIL_NODE) return path;
     path.push_front(next);
   }
   return path;
@@ -252,13 +250,6 @@ scurr to s¯ then
     }
     m_open.refresh();
     int movements = MoveMax;
-    //      for(int y = 0; y < graph.getHeight(); ++y) {
-    //          for(int x = 0; x < graph.getWidth(); ++x) {
-    //              dir_t dir = m_directions[x][y];
-    //              std::cout << dir ? dir : ' ';
-    //          }
-    //          std::cout << std::endl;
-    //      }
     list<node_t> path = getResult(m_next);
     while (m_current != m_next && movements > 0) {
       if (m_current != path.front()) {
@@ -269,28 +260,26 @@ scurr to s¯ then
     }
   }
 
-  return getResult(m_end);
+  return getPath();
 }
 
 float RTAA::getCost() const {
-    float total = 0;
-    auto path = getPath();
-    auto it = path.begin();
-    if (it == path.end()) return total;
-    node_t first = *it;
-    for(int i = 0; i < path.size(); ++i, it++) {
-        node_t next = *it;
-        if ((first.first == next.first && first.second != next.second) ||
-            (first.first != next.first && first.second == next.second)) {
-            total += BorderingCost;
-        }
-            else if (first.first == next.first && first.second == next.second) {
-                total += 0;
-            }
-        else {
-            total += CornerCost;
-        }
-        first = next;
+  float total = 0;
+  auto path = getPath();
+  auto it = path.begin();
+  if (it == path.end()) return total;
+  node_t first = *it;
+  for (int i = 0; i < path.size(); ++i, it++) {
+    node_t next = *it;
+    if ((first.first == next.first && first.second != next.second) ||
+        (first.first != next.first && first.second == next.second)) {
+      total += BorderingCost;
+    } else if (first.first == next.first && first.second == next.second) {
+      total += 0;
+    } else {
+      total += CornerCost;
     }
-    return total;
+    first = next;
+  }
+  return total;
 }
