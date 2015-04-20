@@ -17,7 +17,7 @@ class RTAA : public RealTimeAlgorithm {
   RTAA(Map& graph, float (*heuristic)(node_t, node_t));
   virtual ~RTAA();
 
-  virtual void setStart(node_t start) override;
+  virtual void setStart(node_t start, bool refreshHeuristics = true) override;
   virtual void setEnd(node_t end) override;
     
     virtual std::list<node_t> getPath() const {return m_path;}

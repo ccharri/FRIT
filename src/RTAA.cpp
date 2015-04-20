@@ -81,9 +81,9 @@ RTAA::~RTAA() {
   m_directions = 0;
 }
 
-void RTAA::setStart(node_t start) {
-  //    assert(m_graph->isPathable(m_graph->getNodeType(start.first,
-  //    start.second)));
+void RTAA::setStart(node_t start, bool refreshHeuristics) {
+      assert(m_graph->isPathable(m_graph->getNodeType(start.first,
+      start.second)));
 
   // Set current location
   m_start = m_current = start;
@@ -99,7 +99,7 @@ void RTAA::setStart(node_t start) {
   for (int x = 0; x < m_graph->getWidth(); ++x) {
     for (int y = 0; y < m_graph->getHeight(); ++y) {
       m_gValues[x][y] = FLT_MAX;
-      m_hValues[x][y] = m_heuristic(node_t(x, y), m_end);
+      if(refreshHeuristics)m_hValues[x][y] = m_heuristic(node_t(x, y), m_end);
       m_directions[x][y] = 0;
     }
   }
@@ -109,8 +109,8 @@ void RTAA::setStart(node_t start) {
 }
 
 void RTAA::setEnd(node_t end) {
-  //    assert(m_graph->isPathable(m_graph->getNodeType(end.first,
-  //    end.second)));
+      assert(m_graph->isPathable(m_graph->getNodeType(end.first,
+      end.second)));
   m_end = end;
 
   for (int x = 0; x < m_graph->getWidth(); ++x) {
@@ -142,10 +142,6 @@ void RTAA::AStar(Map &graph) {
 
     node_t top = m_open.top();
     m_open.pop();
-
-    if (isGoalNode(top)) {
-      return;
-    }
 
     m_closed.insert(top);
     const char *neighborDirs = graph.getNeighborDirs();
@@ -195,9 +191,7 @@ std::list<node_t> RTAA::getResult(const node_t &goal) {
 dir_t RTAA::findBestNeighbor(Map &graph, const node_t &node) {
   dir_t bestDir = 0;
   float lowestCost = FLT_MAX;
-  const char *neighborDirs = (graph.getType() == OCTILE)
-                                 ? VALID_OCTILE_DIRECTIONS
-                                 : VALID_QUARTILE_DIRECTIONS;
+    const char const *neighborDirs = graph.getNeighborDirs();
   for (int i = 0; i < graph.numNeighbors(); ++i) {
     node_t neighbor =
         graph.getNeighbor(node.first, node.second, neighborDirs[i]);
@@ -252,7 +246,7 @@ scurr to s¯ then
     while (m_current != getNext() && movements > 0) {
       if (m_current != path.front()) {
         moveTo(path.front());
-        movements--;
+        --movements;
       }
       path.pop_front();
     }

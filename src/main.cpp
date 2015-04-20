@@ -33,16 +33,16 @@ int main(int argc, char** argv) {
 
   for (int i = 0; i < files.size(); ++i) {
     std::fstream file(files[i].first);
-    Map test(file);
-    RTAA rta(test, octileHeuristic);
+    Freespace_Map test(file);
+    IT_RTAA rta(test, nullHeuristic);
     ScenarioLoader loader(files[i].second.c_str());
     int numOptimal = 0;
     bool allOptimal = true;
-    for (int i = 0; i < loader.GetNumExperiments(); ++i) {
+    for (int i = 0; (i < loader.GetNumExperiments()) && (i < 1000); ++i) {
       Experiment e = loader.GetNthExperiment(i);
       rta.setStart(node_t(e.GetStartX(), e.GetStartY()));
       rta.setEnd(node_t(e.GetGoalX(), e.GetGoalY()));
-      std::list<node_t> result = rta.search(test, octileHeuristic);
+      std::list<node_t> result = rta.search(test, nullHeuristic);
       result = rta.getPath();
       float goal = rta.getGoalValue(node_t(e.GetGoalX(), e.GetGoalY()));
       goal = rta.getCost();

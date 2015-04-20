@@ -27,4 +27,8 @@ static float octileHeuristic(node_t a, node_t b) {
     return fmaxf(fxdif, fydif) + (CornerCost - BorderingCost)*fminf(fxdif, fydif);
 }
 
+static float nullHeuristic(node_t a, node_t b) {
+    return 0;
+}
+
 #endif

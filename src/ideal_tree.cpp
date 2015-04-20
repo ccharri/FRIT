@@ -91,6 +91,8 @@ node_t IT_RTAA::getParent(const node_t &node) {
 }
 
 void IT_RTAA::observeAround(const node_t &node) {
+    if(node == FAIL_NODE) return;
+    getMap().observe(node.first, node.second);
   dir_t const *nDirs = getMap().getNeighborDirs();
   for (int i = 0; i < getMap().numNeighbors(); ++i) {
     node_t n = getMap().getNeighbor(node.first, node.second, nDirs[i]);
@@ -106,6 +108,7 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
     dir_t const *nDirs = graph.getNeighborDirs();
     for (int i = 0; i < graph.numNeighbors(); ++i) {
       node_t n = graph.getNeighbor(getLoc().first, getLoc().second, nDirs[i]);
+          if(n == FAIL_NODE) continue;
       if (!graph.isConnected(getLoc().first, getLoc().second, n.first,
                              n.second)) {
         float h = getHeuristicValue(n);
@@ -114,9 +117,9 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
         pruneAround(n);
       }
     }
-    if (m_idealDirs[getLoc().first][getLoc().second] == 0) {
+    if (getParent(getLoc()) == FAIL_NODE) {
       ++m_color;
-      if (i) RTAA::setStart(getLoc());
+      if (i) RTAA::setStart(getLoc(), false);
       list<node_t> result = RTAA::search(graph, heuristic);
       if (result.empty()) return result;
         auto it = result.begin();
@@ -203,11 +206,7 @@ void IT_RTAA::pruneAround(const node_t &node) {
   dir_t const *nDirs = getMap().getNeighborDirs();
   for (int i = 0; i < getMap().numNeighbors(); ++i) {
     node_t n = getMap().getNeighbor(node.first, node.second, nDirs[i]);
-    if (n == FAIL_NODE) continue;
-    if (m_idealDirs[n.first][n.second] != 0 &&
-        (m_idealDirs[n.first][n.second] == getOppositeDir(nDirs[i]))) {
+      if(getParent(n) == node)
       m_idealDirs[n.first][n.second] = 0;
-      pruneAround(n);
-    }
   }
 }

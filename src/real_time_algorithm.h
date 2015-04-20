@@ -10,7 +10,7 @@ class RealTimeAlgorithm {
  public:
   virtual ~RealTimeAlgorithm(){};
 
-  virtual void setStart(node_t start) = 0;
+  virtual void setStart(node_t start, bool refreshHeuristics) = 0;
   virtual void setEnd(node_t end) = 0;
 
   virtual std::list<node_t> search(Map& graph,
