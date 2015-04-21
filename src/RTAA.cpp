@@ -9,13 +9,15 @@
 using std::list;
 using std::pair;
 
-RTAA::RTAA(Map &graph, float (*heuristic)(node_t, node_t))
+RTAA::RTAA(Map &graph, float (*heuristic)(node_t, node_t), bool move)
     : m_heuristic(heuristic),
       m_gValues(0),
       m_hValues(0),
       m_current(FAIL_NODE),
       m_end(FAIL_NODE),
       m_start(FAIL_NODE),
+      m_move(move),
+m_pathFound(false),
       m_graph(&graph),
       m_open(
           IterPrioQueue<node_t, NodeComparison>(NodeComparison(this, false))) {
@@ -82,14 +84,15 @@ RTAA::~RTAA() {
 }
 
 void RTAA::setStart(node_t start, bool refreshHeuristics) {
-      assert(m_graph->isPathable(m_graph->getNodeType(start.first,
-      start.second)));
+  assert(m_graph->isPathable(m_graph->getNodeType(start.first, start.second)));
 
   // Set current location
   m_start = m_current = start;
 
   m_path.clear();
+    m_path.resize(1);
   m_path.push_back(start);
+    m_pathFound = false;
 
   // Clear current state.
   while (!m_open.empty()) m_open.pop();
@@ -99,7 +102,7 @@ void RTAA::setStart(node_t start, bool refreshHeuristics) {
   for (int x = 0; x < m_graph->getWidth(); ++x) {
     for (int y = 0; y < m_graph->getHeight(); ++y) {
       m_gValues[x][y] = FLT_MAX;
-      if(refreshHeuristics)m_hValues[x][y] = m_heuristic(node_t(x, y), m_end);
+      if (refreshHeuristics) m_hValues[x][y] = m_heuristic(node_t(x, y), m_end);
       m_directions[x][y] = 0;
     }
   }
@@ -109,8 +112,7 @@ void RTAA::setStart(node_t start, bool refreshHeuristics) {
 }
 
 void RTAA::setEnd(node_t end) {
-      assert(m_graph->isPathable(m_graph->getNodeType(end.first,
-      end.second)));
+  assert(m_graph->isPathable(m_graph->getNodeType(end.first, end.second)));
   m_end = end;
 
   for (int x = 0; x < m_graph->getWidth(); ++x) {
@@ -137,8 +139,11 @@ void RTAA::AStar(Map &graph) {
       return;
     }
 
-    if(getNext() == FAIL_NODE) return;
-    if (isGoalNode(getNext())) return;
+    if (getNext() == FAIL_NODE) return;
+      if (isGoalNode(getNext()))  {
+          m_pathFound = true;
+          return;
+      }
 
     node_t top = m_open.top();
     m_open.pop();
@@ -171,7 +176,8 @@ void RTAA::AStar(Map &graph) {
         }
       }
     }
-//    if (m_next == FAIL_NODE) m_next = m_open.empty() ? FAIL_NODE : m_open.top();
+    //    if (m_next == FAIL_NODE) m_next = m_open.empty() ? FAIL_NODE :
+    //    m_open.top();
   }
 }
 
@@ -191,7 +197,7 @@ std::list<node_t> RTAA::getResult(const node_t &goal) {
 dir_t RTAA::findBestNeighbor(Map &graph, const node_t &node) {
   dir_t bestDir = 0;
   float lowestCost = FLT_MAX;
-    const char const *neighborDirs = graph.getNeighborDirs();
+  const char const *neighborDirs = graph.getNeighborDirs();
   for (int i = 0; i < graph.numNeighbors(); ++i) {
     node_t neighbor =
         graph.getNeighbor(node.first, node.second, neighborDirs[i]);
@@ -231,25 +237,30 @@ scurr to s¯ then
 {17} return SUCCESS;
 */
 
-  while (!isGoalNode(m_current)) {
+    while (!(m_move ? getLoc() == getGoal() : m_pathFound )) {
     AStar(graph);
     if (getNext() == FAIL_NODE || getLoc() == FAIL_NODE) return list<node_t>();
-    for (auto it = m_closed.begin(); it != m_closed.end(); it++) {
-      m_hValues[it->first][it->second] =
-          m_gValues[getNext().first][getNext().second] +
-          m_hValues[getNext().first][getNext().second] -
-          m_gValues[it->first][it->second];
-    }
-    m_open.refresh();
-    int movements = MoveMax;
-    list<node_t> path = getResult(getNext());
-    while (m_current != getNext() && movements > 0) {
-      if (m_current != path.front()) {
-        moveTo(path.front());
-        --movements;
+    if (!m_pathFound) {
+      for (auto it = m_closed.begin(); it != m_closed.end(); it++) {
+        m_hValues[it->first][it->second] =
+            m_gValues[getNext().first][getNext().second] +
+            m_hValues[getNext().first][getNext().second] -
+            m_gValues[it->first][it->second];
       }
-      path.pop_front();
+      m_open.refresh();
     }
+    if (m_move) {
+      int movements = MoveMax;
+      list<node_t> path = getResult(getNext());
+      while (getLoc() != getNext() && movements > 0) {
+        if (getLoc() != path.front()) {
+          moveTo(path.front());
+          --movements;
+        }
+        path.pop_front();
+      }
+    } else
+      return getResult(getNext());
   }
 
   return getPath();

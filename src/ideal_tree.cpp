@@ -11,7 +11,7 @@ using std::list;
 using std::priority_queue;
 
 IT_RTAA::IT_RTAA(Freespace_Map &graph, float (*heuristic)(node_t, node_t))
-    : RTAA(graph, heuristic),
+    : RTAA(graph, heuristic, false),
       m_map(&graph),
       m_hObstacle(FLT_MAX),
       m_color(0),
@@ -73,7 +73,7 @@ bool IT_RTAA::isGoalNode(const node_t &node) {
   node_t next = node;
   node_t goal = getGoal();
   while (next != goal) {
-    if (getHeuristicValue(node) < m_hObstacle) return true;
+    if (octileHeuristic(node, goal) < m_hObstacle) return true;
 
     m_colors[next.first][next.second] = m_color;
     node_t parent = getParent(next);
@@ -103,7 +103,6 @@ void IT_RTAA::observeAround(const node_t &node) {
 
 list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
   while (getLoc() != getGoal()) {
-    bool i = m_idealDirs[getLoc().first][getLoc().second] != 0;
     observeAround(getLoc());
     dir_t const *nDirs = graph.getNeighborDirs();
     for (int i = 0; i < graph.numNeighbors(); ++i) {
@@ -111,7 +110,7 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
           if(n == FAIL_NODE) continue;
       if (!graph.isConnected(getLoc().first, getLoc().second, n.first,
                              n.second)) {
-        float h = getHeuristicValue(n);
+        float h = octileHeuristic(n, getGoal());
         if (h < m_hObstacle) m_hObstacle = h;
         m_idealDirs[n.first][n.second] = 0;
         pruneAround(n);
@@ -119,12 +118,12 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
     }
     if (getParent(getLoc()) == FAIL_NODE) {
       ++m_color;
-      if (i) RTAA::setStart(getLoc(), false);
+      if(getLoc() != getStart()) RTAA::setStart(getLoc(), false);
       list<node_t> result = RTAA::search(graph, heuristic);
       if (result.empty()) return result;
-        auto it = result.begin();
-        node_t first = *it;
-        for (int i = 0; i < result.size(); ++i, it++) {
+        if(!isPathFound()) continue;
+        node_t first = *result.begin();
+        for (auto it = ++result.begin(); it != result.end(); it++){
             node_t next = *it;
             dir_t const * nDirs = getMap().getNeighborDirs();
             for(int n = 0; n < getMap().numNeighbors(); ++n) {
@@ -133,12 +132,10 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
             }
             first = next;
         }
-    } else {
-      node_t next =
-          graph.getNeighbor(getLoc().first, getLoc().second,
-                            m_idealDirs[getLoc().first][getLoc().second]);
-      moveTo(next);
     }
+      node_t next = getParent(getLoc());
+      moveTo(next);
+    
   }
 
   return getPath();
@@ -147,6 +144,7 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
 void IT_RTAA::refresh() {
   getMap().clearObservations();
   m_iPath.clear();
+    m_iPath.resize(1);
 
   for (int x = 0; x < getMap().getWidth(); ++x) {
     for (int y = 0; y < getMap().getHeight(); ++y) {
