@@ -149,6 +149,7 @@ void IT_RTAA::refresh() {
   for (int x = 0; x < getMap().getWidth(); ++x) {
     for (int y = 0; y < getMap().getHeight(); ++y) {
       m_idealDirs[x][y] = 0;
+      m_colors[x][y] = 0;
     }
   }
 

@@ -9,6 +9,7 @@
 #include "IterPrioQueue.h"
 #include "Directions.h"
 #include "Parameters.h"
+#include "Heuristics.h"
 #include "node.h"
 #include "map.h"
 
@@ -81,12 +82,18 @@ class RTAA : public RealTimeAlgorithm {
       float flhs = m_rta->getGuess(lhs);
       float frhs = m_rta->getGuess(rhs);
       if (m_reverse) {
-        if (flhs == frhs)
+          if (flhs == frhs){
+            if(m_rta->m_move)
           return m_rta->getGoalValue(lhs) < m_rta->getGoalValue(rhs);
+            else return octileHeuristic(lhs, m_rta->m_end) < octileHeuristic(rhs, m_rta->m_end);
+          }
         return flhs < frhs;
       } else {
-        if (flhs == frhs)
+          if (flhs == frhs) {
+              if(m_rta->m_move)
           return m_rta->getGoalValue(lhs) > m_rta->getGoalValue(rhs);
+            else return octileHeuristic(lhs, m_rta->m_end) > octileHeuristic(rhs, m_rta->m_end);
+          }
         return flhs > frhs;
       }
     }

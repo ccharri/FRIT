@@ -124,8 +124,10 @@ void RTAA::setEnd(node_t end) {
   }
 
   m_gValues[m_start.first][m_start.second] = 0;
-  m_path.clear();
-  m_path.push_back(m_start);
+    m_path.clear();
+    m_path.resize(0);
+    m_path.push_back(m_start);
+    m_pathFound = false;
 }
 
 bool RTAA::isGoalNode(const node_t &node) { return node == m_end; }

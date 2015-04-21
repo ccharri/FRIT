@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     ScenarioLoader loader(files[i].second.c_str());
     int numOptimal = 0;
     bool allOptimal = true;
-      for (int i = argc > 2 ? atoi(argv[2]) : 0; (i < loader.GetNumExperiments()) && (i < 1000); ++i) {
+      for (int i = argc > 2 ? atoi(argv[2]) : 0; (i < loader.GetNumExperiments()) && (i < (argc > 3 ? atoi(argv[3]) :1000)); ++i) {
       Experiment e = loader.GetNthExperiment(i);
       rta.setStart(node_t(e.GetStartX(), e.GetStartY()));
       rta.setEnd(node_t(e.GetGoalX(), e.GetGoalY()));

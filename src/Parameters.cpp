@@ -10,7 +10,7 @@
 
 #include <math.h>
 
-const int LookAhead = 10;
+const int LookAhead = 1;
 const int MoveMax = 1;
 
 const float BorderingCost = 1;
