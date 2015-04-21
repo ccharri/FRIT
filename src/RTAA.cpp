@@ -90,7 +90,7 @@ void RTAA::setStart(node_t start, bool refreshHeuristics) {
   m_start = m_current = start;
 
   m_path.clear();
-    m_path.resize(1);
+    m_path.resize(0);
   m_path.push_back(start);
     m_pathFound = false;
 

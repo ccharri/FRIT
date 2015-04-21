@@ -144,7 +144,7 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
 void IT_RTAA::refresh() {
   getMap().clearObservations();
   m_iPath.clear();
-    m_iPath.resize(1);
+    m_iPath.resize(0);
 
   for (int x = 0; x < getMap().getWidth(); ++x) {
     for (int y = 0; y < getMap().getHeight(); ++y) {
