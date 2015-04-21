@@ -52,6 +52,8 @@ class RTAA : public RealTimeAlgorithm {
     virtual node_t getNext() const {return m_open.empty() ? FAIL_NODE : m_open.front();}
     
     virtual bool isPathFound() const {return m_pathFound;}
+    
+    virtual void observeAround(const node_t& node);
 
  private:
   void AStar(Map& graph);

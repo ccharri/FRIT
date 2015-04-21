@@ -27,9 +27,9 @@ class IT_RTAA : public RTAA {
  protected:
 
   virtual bool isGoalNode(const node_t& node) override;
+    virtual bool inIdealTree(const node_t& node, bool paint = true) ;
   inline virtual node_t getParent(const node_t& node);
 
-    virtual void observeAround(const node_t& node);
     
     virtual inline Freespace_Map& getMap() {return *m_map;}
     

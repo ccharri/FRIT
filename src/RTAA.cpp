@@ -196,6 +196,18 @@ std::list<node_t> RTAA::getResult(const node_t &goal) {
   return path;
 }
 
+
+void RTAA::observeAround(const node_t &node) {
+    if(node == FAIL_NODE) return;
+    getMap().observe(node.first, node.second);
+    dir_t const *nDirs = getMap().getNeighborDirs();
+    for (int i = 0; i < getMap().numNeighbors(); ++i) {
+        node_t n = getMap().getNeighbor(node.first, node.second, nDirs[i]);
+        if(n == FAIL_NODE) continue;
+        getMap().observe(n.first, n.second);
+    }
+}
+
 dir_t RTAA::findBestNeighbor(Map &graph, const node_t &node) {
   dir_t bestDir = 0;
   float lowestCost = FLT_MAX;
@@ -239,7 +251,8 @@ scurr to s¯ then
 {17} return SUCCESS;
 */
 
-    while (!(m_move ? getLoc() == getGoal() : m_pathFound )) {
+    while (!m_pathFound) {
+    observeAround(getLoc());
     AStar(graph);
     if (getNext() == FAIL_NODE || getLoc() == FAIL_NODE) return list<node_t>();
     if (!m_pathFound) {
