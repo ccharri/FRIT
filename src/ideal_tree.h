@@ -30,6 +30,7 @@ class IT_RTAA : public RTAA {
     virtual bool inIdealTree(const node_t& node, bool paint = true) ;
   inline virtual node_t getParent(const node_t& node);
 
+    virtual void observeAround(const node_t& node) override;
     
     virtual inline Freespace_Map& getMap() {return *m_map;}
     

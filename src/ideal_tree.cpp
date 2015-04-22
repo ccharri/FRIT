@@ -3,6 +3,7 @@
 
 #include <float.h>
 #include <set>
+#include <assert.h>
 
 #include "IterPrioQueue.h"
 #include "Parameters.h"
@@ -74,6 +75,25 @@ bool IT_RTAA::isGoalNode(const node_t &node) {
     return inIdealTree(node);
 }
 
+void IT_RTAA::observeAround(const node_t& node) {
+    RTAA::observeAround(node);
+    if(!getMap().isPathable(getMap().getNodeType(node.first, node.second)))
+    {
+        float h = octileHeuristic(node, getGoal());
+        if (h < m_hObstacle) m_hObstacle = h;
+    }
+    dir_t const *nDirs = getMap().getNeighborDirs();
+    for (int i = 0; i < getMap().numNeighbors(); ++i) {
+        node_t n = getMap().getNeighbor(node.first, node.second, nDirs[i]);
+        if(n == FAIL_NODE) continue;
+        if (!getMap().isConnected(node.first, node.second, n.first,
+                               n.second)) {
+            m_idealDirs[n.first][n.second] = 0;
+            pruneAround(n);
+        }
+    }
+}
+
 bool IT_RTAA::inIdealTree(const node_t& node, bool paint) {
     node_t next = node;
     node_t goal = getGoal();
@@ -103,25 +123,12 @@ node_t IT_RTAA::getParent(const node_t &node) {
 list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
   while (getLoc() != getGoal()) {
     observeAround(getLoc());
-    dir_t const *nDirs = graph.getNeighborDirs();
-    for (int i = 0; i < graph.numNeighbors(); ++i) {
-      node_t n = graph.getNeighbor(getLoc().first, getLoc().second, nDirs[i]);
-          if(n == FAIL_NODE) continue;
-      if (!graph.isConnected(getLoc().first, getLoc().second, n.first,
-                             n.second)) {
-        float h = octileHeuristic(n, getGoal());
-        if (h < m_hObstacle) m_hObstacle = h;
-        m_idealDirs[n.first][n.second] = 0;
-        pruneAround(n);
-      }
-    }
-      bool reconnect = false;
     if (getParent(getLoc()) == FAIL_NODE) {
-        reconnect = true;
       ++m_color;
-      if(getLoc() != getStart()) RTAA::setStart(getLoc(), false);
+      RTAA::setStart(getLoc(), false);
       list<node_t> result = RTAA::search(graph, heuristic);
       if (result.empty()) return result;
+        assert(result.size() > 1);
         node_t first = *result.begin();
         for (auto it = ++result.begin(); it != result.end(); it++){
             node_t next = *it;
@@ -135,14 +142,10 @@ list<node_t> IT_RTAA::search(Map &graph, float (*heuristic)(node_t, node_t)) {
             }
             first = next;
         }
-    }
-      node_t next = getParent(getLoc());
-      if(!inIdealTree(next, false)) {
-          if(reconnect) moveTo(next);
-          m_idealDirs[getLoc().first][getLoc().second] = 0;
-      }
-      else
+    } else {
+        node_t next = getParent(getLoc());
           moveTo(next);
+    }
       
   }
 
@@ -215,7 +218,7 @@ void IT_RTAA::pruneAround(const node_t &node) {
     node_t n = getMap().getNeighbor(node.first, node.second, nDirs[i]);
       if(getParent(n) == node) {
           m_idealDirs[n.first][n.second] = 0;
-          pruneAround(n);
+//          pruneAround(n);
       }
   }
 }
